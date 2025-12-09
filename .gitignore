@@ -1,0 +1,1 @@
+# Java\ntarget/\n*.class\n\n# IDE\n.idea/\n*.iml\n\n# OS\n.DS_Store\n\n# Gemini Context\nGEMINI.md\ntask.md\n.gemini/

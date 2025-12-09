@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EuroBite 2026 - Architecture Diagrams</title>
+    <!-- Use UMD build for better local file compatibility -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            mermaid.initialize({
+                startOnLoad: true,
+                theme: 'neutral',
+                securityLevel: 'loose',
+                flowchart: { htmlLabels: true }
+            });
+        });
+    </script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 2rem; max-width: 1200px; margin-left: auto; margin-right: auto; background-color: #f9f9f9; }
+        h1 { border-bottom: 2px solid #333; padding-bottom: 0.5rem; }
+        h2 { margin-top: 3rem; color: #444; border-left: 5px solid #007bff; padding-left: 10px; }
+        .diagram-container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 2rem; overflow-x: auto; }
+        .desc { color: #666; font-style: italic; margin-bottom: 10px; }
+        .ddd-context-table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.9rem; }
+        .ddd-context-table th, .ddd-context-table td { border: 1px solid #ddd; padding: 6px 8px; text-align: left; }
+        .ddd-context-table th { background-color: #f2f2f2; }
+        .ddd-context-map-ascii { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 0.85rem; white-space: pre; }
+    </style>
+</head>
+<body>
+
+    <h1>EuroBite 2026 - Architecture Visualization</h1>
+    <p>This document visualizes the design of the EuroBite Modular Monolith.</p>
+
+    <h2>1. Use Case Diagram</h2>
+    <div class="diagram-container">
+        <pre class="mermaid">flowchart LR
+    Admin["Admin (Backoffice)"]
+    User["User (C-End)"]
+
+    subgraph AdminPanel["Admin Console"]
+        A1["Login - JWT (Employee)"]
+        A2["Manage Employees"]
+        A3["Manage Categories"]
+        A4["Manage Dishes & Setmeals"]
+        A5["Manage Orders"]
+    end
+
+    subgraph UserApp["User App / Web"]
+        U1["Login - Mobile OTP"]
+        U2["Browse Menu"]
+        U3["Manage Cart"]
+        U4["Submit Order"]
+        U5["View Order History"]
+        U6["GDPR Export My Data"]
+        U7["GDPR Delete My Account"]
+    end
+
+    Admin --> A1
+    Admin --> A2
+    Admin --> A3
+    Admin --> A4
+    Admin --> A5
+
+    User --> U1
+    User --> U2
+    User --> U3
+    User --> U4
+    User --> U5
+    User --> U6
+    User --> U7
+        </pre>
+    </div>
+
+    <h2>2. Class Diagram (Modular Monolith)</h2>
+    <div class="diagram-container">
+        <pre class="mermaid">
+    classDiagram
+        class BaseEntity {
+            +Long id
+            +LocalDateTime createTime
+            +LocalDateTime updateTime
+            +Long createUser
+            +Long updateUser
+        }
+
+        class Employee {
+            +String username
+            +String password
+            +String name
+            +String phone
+            +Integer status
+        }
+
+        class Dish {
+            +String name
+            +BigDecimal price
+            +String image
+            +String description
+        }
+
+        class DishFlavor {
+            +String name
+            +String value
+        }
+
+        class Category {
+            +String name
+            +Integer type
+        }
+
+        class Setmeal {
+            +String name
+            +BigDecimal price
+            +Integer status
+        }
+
+        class SetmealDish {
+            +Long dishId
+            +Long setmealId
+            +Integer copies
+        }
+
+        class User {
+            +String phone
+            +String name
+        }
+
+        class AddressBook {
+            +String consignee
+            +String phone
+            +String detail
+            +Boolean isDefault
+        }
+
+        class ShoppingCart {
+            +Long dishId
+            +Long setmealId
+            +Integer number
+            +BigDecimal amount
+        }
+
+        class Orders {
+            +String number
+            +BigDecimal amount
+            +Integer status
+        }
+
+        class OrderDetail {
+            +Long orderId
+            +Long dishId
+            +Long setmealId
+            +Integer number
+            +BigDecimal amount
+        }
+
+        BaseEntity <|-- Employee : extends
+        BaseEntity <|-- Dish : extends
+        BaseEntity <|-- DishFlavor : extends
+        BaseEntity <|-- Category : extends
+        BaseEntity <|-- Setmeal : extends
+        BaseEntity <|-- User : extends
+        BaseEntity <|-- AddressBook : extends
+        BaseEntity <|-- ShoppingCart : extends
+        BaseEntity <|-- Orders : extends
+        BaseEntity <|-- OrderDetail : extends
+        
+        Dish "1" *-- "n" DishFlavor : Composition
+        Category "1" -- "n" Dish : Association
+        Category "1" -- "n" Setmeal : Association
+        Setmeal "1" *-- "n" SetmealDish : Composition
+        User "1" -- "n" AddressBook : Association
+        User "1" -- "n" ShoppingCart : Association
+        User "1" -- "n" Orders : Association
+        Orders "1" -- "n" OrderDetail : Association
+        </pre>
+    </div>
+
+    <h2>3. Sequence Diagram: JWT Authentication</h2>
+    <div class="diagram-container">
+        <pre class="mermaid">
+    sequenceDiagram
+        participant Client
+        participant SecConfig as SecurityConfig
+        participant AuthCtrl as EmployeeAuthController
+        participant Service as EmployeeService
+        participant JwtUtil as JwtUtil
+        participant DB as PostgreSQL (employee)
+
+        Client->>SecConfig: POST /api/auth/employee/login
+        SecConfig->>AuthCtrl: Permit All
+        AuthCtrl->>Service: login(LoginDTO)
+        Service->>DB: findByUsername(username)
+        DB-->>Service: Employee
+        Service->>Service: verify password (BCrypt)
+        Service->>JwtUtil: generateToken(employeeId, username)
+        JwtUtil-->>Service: jwtToken
+        Service-->>Client: R{ token, employee }
+        </pre>
+    </div>
+
+    <h2>4. Sequence Diagram: Order Submission</h2>
+    <div class="diagram-container">
+        <pre class="mermaid">
+    sequenceDiagram
+        participant User
+        participant OrderCtrl as OrderController
+        participant OrderSvc as OrderService
+        participant CartSvc as ShoppingCartService
+        participant DishApi as DishModuleApi
+        participant DB as PostgreSQL
+
+        User->>OrderCtrl: POST /api/orders/submit
+        OrderCtrl->>OrderSvc: submit(orderCommand)
+        
+        rect rgb(240, 248, 255)
+            Note right of OrderSvc: Transaction Start
+            OrderSvc->>CartSvc: loadCartForUser()
+            CartSvc-->>OrderSvc: cartItems
+            loop For Each Item
+                OrderSvc->>DishApi: getCurrentPrice(item.dishId or setmealId)
+                DishApi-->>OrderSvc: price
+            end
+            OrderSvc->>DB: Save Order
+            OrderSvc->>DB: Save Order Details
+            OrderSvc->>CartSvc: clearCart()
+            Note right of OrderSvc: Transaction Commit
+        end
+        
+        OrderSvc-->>User: R{ orderId, status }
+        </pre>
+    </div>
+
+    <h2>5. Activity Diagram: Create Dish</h2>
+    <div class="diagram-container">
+        <pre class="mermaid">
+    stateDiagram-v2
+        [*] --> ReceiveRequest
+        ReceiveRequest --> ValidateDTO : @Valid Annotation
+        
+        state Transactional_Scope {
+            ValidateDTO --> ConvertToEntity : MapStruct Mapping
+            ConvertToEntity --> SaveDish : dishRepo.save()
+            SaveDish --> AssignID : Get Generated ID
+            AssignID --> SetFlavorIDs : Iterate Flavors List
+            SetFlavorIDs --> SaveFlavors : flavorRepo.saveAll()
+        }
+
+        SaveFlavors --> ClearCache : Redis.del(pattern)
+        ClearCache --> ReturnSuccess
+        ReturnSuccess --> [*]
+        </pre>
+    </div>
+
+    <h2>6. DDD Context Map</h2>
+    <div class="diagram-container">
+        <p class="desc">High-level view of bounded contexts and their dependencies.</p>
+        <pre class="ddd-context-map-ascii">
+[Shared Kernel] (com.eurobite.common)
+   |-- provides common model (R&lt;T&gt;, BaseEntity)
+   |-- provides technical infrastructure (security, config, file, Jackson, JPA)
+   |
+   |--> [Employee Context] (modules.employee)
+   |        - backoffice auth (JWT, BCrypt)
+   |        - employee CRUD
+   |
+   |--> [Category Context] (modules.category)
+   |        - dish/setmeal categories
+   |
+   |--> [Dish Context] (modules.dish, planned)
+   |        - Dish aggregate root
+   |        - DishFlavor value objects
+   |        - DishModuleApi for price lookup
+   |
+   |--> [Setmeal Context] (modules.setmeal, planned)
+   |        - Setmeal aggregate root
+   |        - SetmealDish composition
+   |
+   |--> [User &amp; GDPR Context] (modules.user, planned)
+   |        - User + AddressBook
+   |        - GDPR export / delete
+   |
+   |--> [Order Context] (modules.order, planned)
+            - ShoppingCart
+            - Orders + OrderDetail
+            - uses DishModuleApi for pricing
+
+Cross-context flows:
+   Category -> Dish -> Order
+   User    -> Order
+        </pre>
+    </div>
+
+    <div class="diagram-container">
+        <p class="desc">Summary of each bounded context and its responsibilities.</p>
+        <table class="ddd-context-table">
+            <thead>
+            <tr>
+                <th>Context</th>
+                <th>Package</th>
+                <th>Main Responsibilities</th>
+                <th>Status</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>Shared Kernel</td>
+                <td><code>com.eurobite.common</code></td>
+                <td>Cross-cutting concerns: R&lt;T&gt;, BaseEntity, exception handling, security, configuration, file storage.</td>
+                <td>Implemented (Phase 1)</td>
+            </tr>
+            <tr>
+                <td>Employee</td>
+                <td><code>com.eurobite.modules.employee</code></td>
+                <td>Backoffice authentication and employee management.</td>
+                <td>Implemented (Phase 2)</td>
+            </tr>
+            <tr>
+                <td>Category</td>
+                <td><code>com.eurobite.modules.category</code></td>
+                <td>Classification of dishes and setmeals.</td>
+                <td>Implemented (Phase 3)</td>
+            </tr>
+            <tr>
+                <td>Dish</td>
+                <td><code>com.eurobite.modules.dish</code></td>
+                <td>Dish aggregate with flavors, pricing and caching.</td>
+                <td>Planned (Phase 4)</td>
+            </tr>
+            <tr>
+                <td>Setmeal</td>
+                <td><code>com.eurobite.modules.setmeal</code></td>
+                <td>Setmeal aggregate, composition and pricing.</td>
+                <td>Planned (Phase 5)</td>
+            </tr>
+            <tr>
+                <td>User &amp; GDPR</td>
+                <td><code>com.eurobite.modules.user</code></td>
+                <td>End-user identity, address book, GDPR export/delete.</td>
+                <td>Planned (Phase 6)</td>
+            </tr>
+            <tr>
+                <td>Order</td>
+                <td><code>com.eurobite.modules.order</code></td>
+                <td>Shopping cart, order submission, integration with DishModuleApi for pricing.</td>
+                <td>Planned (Phase 7)</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>7. Layered Architecture (DDD Layers)</h2>
+    <div class="diagram-container">
+        <pre class="mermaid">flowchart TB
+    UI["Frontend (Vite + React + TS)"]
+
+    API["API Layer (Spring MVC Controllers)<br/>e.g. EmployeeAuthController, EmployeeController, CategoryController"]
+    APP["Application Layer (Use Case Oriented Services)<br/>e.g. EmployeeService, CategoryService, OrderService (planned)"]
+    DOMAIN["Domain Layer (Entities, Aggregates, Repositories, Domain Services)<br/>e.g. Employee, Category, Dish, Setmeal, User, Orders"]
+    INFRA["Infrastructure Layer (JPA, Redis, Security, File Storage, Flyway, Testcontainers)"]
+
+    UI --> API
+    API --> APP
+    APP --> DOMAIN
+    DOMAIN --> INFRA
+
+    INFRA -.-> DB["PostgreSQL + Redis (Docker Compose)"]
+        </pre>
+    </div>
+
+</body>
+</html>

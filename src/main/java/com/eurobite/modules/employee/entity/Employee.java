@@ -11,12 +11,11 @@ import lombok.EqualsAndHashCode;
 @Entity
 @Table(name = "employee")
 public class Employee extends BaseEntity {
-
     private String username;
     private String name;
     private String password;
     private String phone;
     private String sex;
-    private String idNumber;
     private Integer status;
+    private String role; // ADMIN, CHEF, STAFF
 }

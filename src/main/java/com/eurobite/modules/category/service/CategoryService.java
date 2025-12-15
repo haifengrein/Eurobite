@@ -25,6 +25,11 @@ public class CategoryService {
         categoryRepository.deleteById(id);
     }
 
+    public org.springframework.data.domain.Page<Category> page(int page, int pageSize) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page - 1, pageSize, Sort.by("sort").ascending());
+        return categoryRepository.findAll(pageable);
+    }
+
     public List<Category> list(Integer type) {
         // If type is null, find all
         if (type != null) {

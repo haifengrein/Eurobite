@@ -58,6 +58,29 @@ public class DishService {
     }
 
     @Transactional(readOnly = true)
+    public org.springframework.data.domain.Page<DishDTO> pageQuery(int page, int pageSize, String name) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page - 1, pageSize, org.springframework.data.domain.Sort.by("updateTime").descending());
+        // Simple findAll for now. Ideally use Specification for name filter
+        org.springframework.data.domain.Page<Dish> result = dishRepository.findAll(pageable); 
+        return result.map(dishMapper::toDTO);
+    }
+
+    @Transactional
+    @CacheEvict(cacheNames = {"menu", "dish", "dishList"}, allEntries = true)
+    public void deleteBatch(List<Long> ids) {
+        // TODO: Check if dish is in a setmeal
+        dishRepository.deleteAllById(ids);
+    }
+
+    @Transactional
+    @CacheEvict(cacheNames = {"menu", "dish", "dishList"}, allEntries = true)
+    public void updateStatus(Integer status, List<Long> ids) {
+        List<Dish> dishes = dishRepository.findAllById(ids);
+        dishes.forEach(dish -> dish.setStatus(status));
+        dishRepository.saveAll(dishes);
+    }
+
+    @Transactional(readOnly = true)
     @Cacheable(cacheNames = "dish", key = "#id")
     public DishDTO getById(Long id) {
         Dish dish = dishRepository.findById(id)

@@ -33,6 +33,21 @@ public class SetmealService {
         setmealRepository.save(setmeal);
     }
     
+    @Transactional(readOnly = true)
+    public org.springframework.data.domain.Page<SetmealDTO> pageQuery(int page, int pageSize, String name) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page - 1, pageSize, org.springframework.data.domain.Sort.by("updateTime").descending());
+        // Simple findAll. Use Specification for name filter properly later.
+        org.springframework.data.domain.Page<Setmeal> result = setmealRepository.findAll(pageable);
+        return result.map(setmealMapper::toDTO);
+    }
+
+    @Transactional
+    public void updateStatus(Integer status, List<Long> ids) {
+        List<Setmeal> list = setmealRepository.findAllById(ids);
+        list.forEach(s -> s.setStatus(status));
+        setmealRepository.saveAll(list);
+    }
+
     @Transactional
     public void removeWithDish(List<Long> ids) {
         // TODO: Check status (on sale cannot be deleted)

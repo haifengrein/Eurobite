@@ -11,7 +11,7 @@ const AdminLoginPage: React.FC = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
-  const setToken = useAuthStore((state) => state.setToken);
+  const setAuth = useAuthStore((state) => state.setAuth);
   const { showToast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -19,11 +19,18 @@ const AdminLoginPage: React.FC = () => {
     setLoading(true);
     try {
       const res = await loginEmployee({ username, password });
-      
-      if (res.data) {
-        setToken(res.data.token || "mock-token"); 
-        showToast('Welcome back, Chef!');
-        navigate('/admin/dashboard');
+
+      if (res.data && res.data.code === 0) {
+        const { token, employee } = res.data.data;
+        if (token && employee) {
+          setAuth(token, employee);
+          showToast(`Welcome back, ${employee.name}!`);
+          navigate('/admin/dashboard');
+        } else {
+          showToast('Login failed: Invalid server response');
+        }
+      } else {
+        showToast(res.data?.msg || 'Login failed');
       }
     } catch (error: any) {
       showToast(error.message || 'Login failed');

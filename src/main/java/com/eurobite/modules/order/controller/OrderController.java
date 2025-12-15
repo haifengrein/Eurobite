@@ -39,4 +39,22 @@ public class OrderController {
     public R<OrderWithDetailDTO> getDetail(@PathVariable Long orderId) {
         return R.success(orderService.getDetail(orderId));
     }
+
+    @GetMapping("/page")
+    @Operation(summary = "Admin Page Query")
+    public R<Page<Orders>> page(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(required = false) Long number,
+            @RequestParam(required = false) String beginTime,
+            @RequestParam(required = false) String endTime) {
+        return R.success(orderService.adminPage(page, pageSize, number, beginTime, endTime));
+    }
+
+    @PutMapping
+    @Operation(summary = "Update Order Status")
+    public R<String> update(@RequestBody Orders order) {
+        orderService.updateStatus(order);
+        return R.success("Order status updated");
+    }
 }

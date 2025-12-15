@@ -38,6 +38,19 @@ public class SetmealController {
         return R.success(setmealService.getById(id));
     }
 
+    @GetMapping("/page")
+    @Operation(summary = "Page Query")
+    public R<org.springframework.data.domain.Page<SetmealDTO>> page(int page, int pageSize, String name) {
+        return R.success(setmealService.pageQuery(page, pageSize, name));
+    }
+
+    @PostMapping("/status/{status}")
+    @Operation(summary = "Update Status")
+    public R<String> status(@PathVariable Integer status, @RequestParam List<Long> ids) {
+        setmealService.updateStatus(status, ids);
+        return R.success("Status updated");
+    }
+
     @GetMapping("/list")
     @Operation(summary = "List Setmeals By Category")
     public R<List<SetmealDTO>> list(@RequestParam(required = false) Long categoryId) {

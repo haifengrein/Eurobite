@@ -10,11 +10,22 @@ export const http = axios.create({
 });
 
 http.interceptors.request.use((config) => {
-  const token = localStorage.getItem("eurobite_token");
-  if (token) {
-    config.headers = config.headers ?? {};
-    config.headers.Authorization = `Bearer ${token}`;
+  const isAdmin = window.location.pathname.startsWith("/admin");
+  const tokenKey = isAdmin ? "eurobite_admin_token" : "eurobite_token";
+  const tokenData = localStorage.getItem(tokenKey);
+
+  if (tokenData) {
+    try {
+      const { token } = JSON.parse(tokenData);
+      if (token) {
+        config.headers = config.headers ?? {};
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    } catch (e) {
+      console.error('Failed to parse token from localStorage', e);
+    }
   }
+
   return config;
 });
 

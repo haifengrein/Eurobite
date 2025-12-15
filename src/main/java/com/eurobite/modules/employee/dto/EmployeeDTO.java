@@ -8,8 +8,8 @@ public record EmployeeDTO(
     String name,
     String phone,
     String sex,
-    String idNumber,
     Integer status,
+    String role, // ADMIN, CHEF, STAFF
     LocalDateTime createTime,
     LocalDateTime updateTime
 ) {}

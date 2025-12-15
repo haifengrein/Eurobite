@@ -42,10 +42,13 @@ public class EmployeeService {
         }
 
         String token = jwtUtil.generateToken(employee.getId(), employee.getUsername());
-        
+
+        // Convert to DTO to avoid sending sensitive data
+        EmployeeDTO employeeDTO = employeeMapper.toDTO(employee);
+
         Map<String, Object> result = new HashMap<>();
         result.put("token", token);
-        result.put("employee", employee);
+        result.put("employee", employeeDTO);
         return result;
     }
 
@@ -57,6 +60,10 @@ public class EmployeeService {
         // Default: 123456
         employee.setPassword(passwordEncoder.encode("123456"));
         employee.setStatus(1); // Enabled by default
+        // Set default role to STAFF if not provided
+        if (employee.getRole() == null || employee.getRole().isEmpty()) {
+            employee.setRole("STAFF");
+        }
         employeeRepository.save(employee);
     }
 
@@ -72,16 +79,16 @@ public class EmployeeService {
     public void update(EmployeeDTO employeeDTO) {
         Employee employee = employeeRepository.findById(employeeDTO.id())
                 .orElseThrow(() -> new CustomException("Employee not found"));
-        
+
         // Manual mapping for update to avoid overwriting nulls if MapStruct is not configured for ignoring nulls
         // Or just map fields we allow to update
         employee.setName(employeeDTO.name());
         employee.setPhone(employeeDTO.phone());
         employee.setSex(employeeDTO.sex());
-        employee.setIdNumber(employeeDTO.idNumber());
         employee.setStatus(employeeDTO.status());
+        employee.setRole(employeeDTO.role());
         // Password update usually separate
-        
+
         employeeRepository.save(employee);
     }
     

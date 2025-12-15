@@ -25,6 +25,12 @@ public class CategoryController {
         return R.success("Category added");
     }
 
+    @GetMapping("/page")
+    @Operation(summary = "Page Query")
+    public R<org.springframework.data.domain.Page<Category>> page(int page, int pageSize) {
+        return R.success(categoryService.page(page, pageSize));
+    }
+
     @DeleteMapping
     @Operation(summary = "Delete Category")
     public R<String> delete(Long id) {

@@ -139,4 +139,18 @@ public class OrderService {
         List<OrderDetail> details = orderDetailRepository.findByOrderId(orderId);
         return new OrderWithDetailDTO(order, details);
     }
+
+    public Page<Orders> adminPage(int page, int pageSize, Long number, String beginTime, String endTime) {
+        PageRequest pageRequest = PageRequest.of(page - 1, pageSize, Sort.by("orderTime").descending());
+        // Simple findAll for now. Ideally use Specification for filters (number, time range)
+        return orderRepository.findAll(pageRequest);
+    }
+
+    @Transactional
+    public void updateStatus(Orders order) {
+        Orders existing = orderRepository.findById(order.getId())
+                .orElseThrow(() -> new CustomException("Order not found"));
+        existing.setStatus(order.getStatus());
+        orderRepository.save(existing);
+    }
 }

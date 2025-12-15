@@ -22,7 +22,6 @@ class EmployeeRepositoryTest extends AbstractIntegrationTest {
         employee.setPassword("123456");
         employee.setPhone("13800000000");
         employee.setSex("1");
-        employee.setIdNumber("123456789012345678");
         employee.setStatus(1);
 
         employeeRepository.save(employee);
@@ -31,7 +30,7 @@ class EmployeeRepositoryTest extends AbstractIntegrationTest {
         employeeRepository.flush();
 
         Employee found = employeeRepository.findByUsername("admin").orElseThrow();
-        
+
         assertThat(found.getName()).isEqualTo("Admin User");
         assertThat(found.getCreateTime()).isNotNull(); // Verify Auditing
         assertThat(found.getUpdateTime()).isNotNull();

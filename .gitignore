@@ -1,1 +1,30 @@
-# Java\ntarget/\n*.class\n\n# IDE\n.idea/\n*.iml\n\n# OS\n.DS_Store\n\n# Gemini Context\nGEMINI.md\ntask.md\n.gemini/
+# Java Build Artifacts
+target/
+*.class
+
+# Frontend Dependencies & Build Artifacts
+frontend/node_modules/
+frontend/dist/
+node_modules/
+dist/
+
+# IDE & Editor Config
+.idea/
+.vscode/
+*.iml
+.DS_Store
+
+# Local Data (Database)
+data/
+
+# Logs
+*.log
+
+# AI Assistant Context & Settings
+.claude/
+.gemini/
+GEMINI.md
+task.md
+
+# Documentation (Non-core)
+NEW_FEATURES.md

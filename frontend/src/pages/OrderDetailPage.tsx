@@ -23,15 +23,20 @@ const OrderDetailPage = () => {
   useEffect(() => {
     if (!orderId) return;
     const id = Number(orderId);
-    if (Number.isNaN(id)) return;
+    if (Number.isNaN(id)) {
+      setError("Invalid order id");
+      return;
+    }
     
     const load = async () => {
       setLoading(true);
+      setError(null);
       try {
         const detail = await fetchOrderDetail(id);
         setOrder(detail);
       } catch (err) {
         setError("Failed to load order");
+        setOrder(null);
       } finally {
         setLoading(false);
       }
@@ -40,6 +45,19 @@ const OrderDetailPage = () => {
   }, [orderId]);
 
   if (loading) return <div className="flex h-screen items-center justify-center text-sm text-muted-foreground">Loading details...</div>;
+  if (error) {
+    return (
+      <div className="flex min-h-screen w-full flex-col items-center justify-center bg-zinc-50 px-6 text-center">
+        <p className="text-sm font-medium text-zinc-900">{error}</p>
+        <button
+          onClick={() => navigate(-1)}
+          className="mt-4 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white"
+        >
+          Back
+        </button>
+      </div>
+    );
+  }
   if (!order) return null;
 
   const statusConfig = STATUS_MAP[order.status] || STATUS_MAP[1];
@@ -97,7 +115,7 @@ const OrderDetailPage = () => {
         >
           <h3 className="mb-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">Your Receipt</h3>
           <ul className="space-y-4">
-            {order.items.map((item) => (
+            {(order.items ?? []).map((item) => (
               <li key={item.id} className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-50 text-xs font-bold text-zinc-500">

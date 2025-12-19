@@ -17,7 +17,7 @@ export type OrderStatus = number; // 后端使用数字状态码
 export type OrderSummary = {
   id: number;
   number: string;
-  status: number; // 后端返回数字，4=已完成
+  status: number; // 后端返回数字状态码（与 /admin 侧一致）
   amount: number;
   orderTime: string;
 };

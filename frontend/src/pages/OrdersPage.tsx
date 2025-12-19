@@ -13,18 +13,19 @@ import { motion } from "framer-motion";
 type FilterStatus = "ALL" | number;
 
 const STATUS_CONFIG: Record<number, { label: string; color: string; icon: any }> = {
-  1: { label: "Pending", color: "bg-orange-100 text-orange-700 border-orange-200", icon: Clock }, // 待付款
-  2: { label: "Paid", color: "bg-blue-100 text-blue-700 border-blue-200", icon: CheckCircle2 }, // 已付款
-  3: { label: "Cooking", color: "bg-yellow-100 text-yellow-700 border-yellow-200", icon: ChefHat }, // 制作中
-  4: { label: "Completed", color: "bg-green-100 text-green-700 border-green-200", icon: CheckCircle2 }, // 已完成
-  5: { label: "Cancelled", color: "bg-zinc-100 text-zinc-500 border-zinc-200", icon: XCircle } // 已取消
+  1: { label: "Pending Payment", color: "bg-orange-100 text-orange-700 border-orange-200", icon: Clock }, // 待付款
+  2: { label: "Pending", color: "bg-blue-100 text-blue-700 border-blue-200", icon: CheckCircle2 }, // 待接单/待制作（本项目下单后即进入该状态）
+  3: { label: "Cooking", color: "bg-yellow-100 text-yellow-700 border-yellow-200", icon: ChefHat }, // 已接单/制作中
+  4: { label: "Delivering", color: "bg-orange-100 text-orange-700 border-orange-200", icon: Truck }, // 配送中
+  5: { label: "Completed", color: "bg-green-100 text-green-700 border-green-200", icon: CheckCircle2 }, // 已完成
+  6: { label: "Cancelled", color: "bg-red-100 text-red-700 border-red-200", icon: XCircle } // 已取消
 };
 
 const FilterStatusOptions: { value: FilterStatus; label: string }[] = [
   { value: "ALL", label: "All" },
-  { value: 1, label: "Pending" },
+  { value: 2, label: "Pending" },
   { value: 3, label: "Cooking" },
-  { value: 4, label: "Done" },
+  { value: 5, label: "Done" },
 ];
 
 const OrdersPage = () => {
@@ -106,7 +107,7 @@ const OrdersPage = () => {
 
         <div className="space-y-4">
           {orders.map((order, idx) => {
-            const statusConfig = STATUS_CONFIG[order.status] || STATUS_CONFIG[5];
+            const statusConfig = STATUS_CONFIG[order.status] || STATUS_CONFIG[6];
             const StatusIcon = statusConfig.icon;
 
             return (

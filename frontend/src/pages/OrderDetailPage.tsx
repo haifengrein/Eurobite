@@ -1,16 +1,17 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { fetchOrderDetail, type OrderDetail } from "@/api/orders";
-import { ArrowLeft, MapPin, Receipt, Phone, Clock, ShoppingBag, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, MapPin, Receipt, Phone, Clock, ShoppingBag, CheckCircle2, Truck, ChefHat, XCircle } from "lucide-react";
 import { clsx } from "clsx";
 import { motion } from "framer-motion";
 
 const STATUS_MAP: Record<number, { label: string; bg: string; text: string; icon: any }> = {
   1: { label: "Pending Payment", bg: "bg-orange-500", text: "text-white", icon: Clock },
-  2: { label: "Preparing", bg: "bg-blue-500", text: "text-white", icon: ShoppingBag },
-  3: { label: "Delivering", bg: "bg-yellow-500", text: "text-white", icon: Phone },
-  4: { label: "Completed", bg: "bg-green-500", text: "text-white", icon: CheckCircle2 },
-  5: { label: "Cancelled", bg: "bg-zinc-500", text: "text-white", icon: Receipt },
+  2: { label: "Pending", bg: "bg-blue-500", text: "text-white", icon: ShoppingBag },
+  3: { label: "Cooking", bg: "bg-yellow-500", text: "text-white", icon: ChefHat },
+  4: { label: "Delivering", bg: "bg-orange-500", text: "text-white", icon: Truck },
+  5: { label: "Completed", bg: "bg-green-500", text: "text-white", icon: CheckCircle2 },
+  6: { label: "Cancelled", bg: "bg-zinc-500", text: "text-white", icon: XCircle },
 };
 
 const OrderDetailPage = () => {

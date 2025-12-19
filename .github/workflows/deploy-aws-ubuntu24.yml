@@ -36,7 +36,7 @@ jobs:
         run: mkdir -p "deploy-images"
 
       - name: Build Backend (export tar)
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v4
         with:
           context: .
           file: Dockerfile
@@ -44,7 +44,7 @@ jobs:
           outputs: type=docker,dest=deploy-images/eurobite-backend.tar
 
       - name: Build Frontend (export tar)
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v4
         with:
           context: ./frontend
           file: ./frontend/Dockerfile
@@ -86,15 +86,23 @@ jobs:
             set -eu
             mkdir -p "$HOME/eurobite/deploy-images"
 
+      - name: Validate required secrets
+        run: |
+          set -eu
+          [ -n "${{ secrets.SERVER_IP }}" ] || { echo "ERROR: missing secret SERVER_IP"; exit 1; }
+          [ -n "${{ secrets.SSH_PRIVATE_KEY }}" ] || { echo "ERROR: missing secret SSH_PRIVATE_KEY"; exit 1; }
+          [ -n "${{ secrets.POSTGRES_PASSWORD }}" ] || { echo "ERROR: missing secret POSTGRES_PASSWORD"; exit 1; }
+
       - name: Create runtime env file (do not commit)
         run: |
           set -eu
-          cat > ".env.prod" <<'EOF'
-          IMAGE_PATH=${{ needs.build-and-package.outputs.image_path }}
-          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
-          EOF
+          umask 077
+          printf "IMAGE_PATH=%s\nPOSTGRES_PASSWORD=%s\n" \
+            "${{ needs.build-and-package.outputs.image_path }}" \
+            "${{ secrets.POSTGRES_PASSWORD }}" \
+            > ".env.prod"
 
-      - name: Copy compose + env + images to server
+      - name: Copy env + images to server
         uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.SERVER_IP }}

@@ -393,24 +393,26 @@ const HomePage = () => {
             initial={{ opacity: 0, y: 40, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 40, scale: 0.9 }}
-            className="fixed bottom-28 left-1/2 right-auto z-40 flex w-full max-w-[430px] -translate-x-1/2 justify-center px-6"
+            className="fixed inset-x-0 bottom-28 z-40 flex justify-center"
           >
-            <button
-              onClick={() => navigate("/checkout")}
-              className="relative flex w-full max-w-sm items-center justify-between overflow-hidden rounded-2xl bg-zinc-900 p-1.5 pl-5 pr-1.5 text-white shadow-xl shadow-zinc-900/30 ring-1 ring-white/10 backdrop-blur-md transition-transform active:scale-[0.98]"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-50" />
-              
-              <div className="relative flex flex-col items-start leading-none">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">{totalCount} items</span>
-                <span className="text-lg font-bold">€{totalAmount.toFixed(2)}</span>
-              </div>
-              
-              <div className="relative flex h-11 items-center gap-2 rounded-xl bg-primary px-5 font-bold text-white shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90">
-                Checkout
-                <ShoppingBag className="h-4 w-4 fill-white/20" />
-              </div>
-            </button>
+            <div className="w-full max-w-[430px] px-6 flex justify-center">
+              <button
+                onClick={() => navigate("/checkout")}
+                className="relative flex w-full max-w-sm items-center justify-between overflow-hidden rounded-2xl bg-zinc-900 p-1.5 pl-5 pr-1.5 text-white shadow-xl shadow-zinc-900/30 ring-1 ring-white/10 backdrop-blur-md transition-transform active:scale-[0.98]"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-50" />
+                
+                <div className="relative flex flex-col items-start leading-none">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">{totalCount} items</span>
+                  <span className="text-lg font-bold">€{totalAmount.toFixed(2)}</span>
+                </div>
+                
+                <div className="relative flex h-11 items-center gap-2 rounded-xl bg-primary px-5 font-bold text-white shadow-lg shadow-primary/20 transition-colors hover:bg-primary/90">
+                  Checkout
+                  <ShoppingBag className="h-4 w-4 fill-white/20" />
+                </div>
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

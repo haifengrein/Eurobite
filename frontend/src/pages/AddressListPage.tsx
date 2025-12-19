@@ -190,34 +190,35 @@ const AddressListPage = () => {
 
       {/* Drawer Form */}
       <AnimatePresence>
-        {formVisible && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setFormVisible(false)}
-              className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="fixed bottom-0 left-1/2 z-50 w-full max-w-[430px] -translate-x-1/2 rounded-t-[32px] bg-white p-6 pb-10 shadow-2xl"
-            >
-              <div className="mx-auto mb-6 h-1 w-12 rounded-full bg-zinc-200" />
-              
-              <div className="mb-6 flex items-center justify-between">
-                <h2 className="text-xl font-bold text-foreground">
-                  {editing ? "Edit Address" : "New Address"}
-                </h2>
+	        {formVisible && (
+	          <>
+	            <motion.div
+	              initial={{ opacity: 0 }}
+	              animate={{ opacity: 1 }}
+	              exit={{ opacity: 0 }}
+	              onClick={() => setFormVisible(false)}
+	              className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm"
+	            />
+	            <motion.div
+	              initial={{ y: "100%" }}
+	              animate={{ y: 0 }}
+	              exit={{ y: "100%" }}
+	              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+	              className="fixed inset-x-0 bottom-0 z-50 flex justify-center"
+	            >
+	              <div className="w-full max-w-[430px] rounded-t-[32px] bg-white p-6 pb-10 shadow-2xl">
+	                <div className="mx-auto mb-6 h-1 w-12 rounded-full bg-zinc-200" />
+	              
+	              <div className="mb-6 flex items-center justify-between">
+	                <h2 className="text-xl font-bold text-foreground">
+	                  {editing ? "Edit Address" : "New Address"}
+	                </h2>
                 <button onClick={() => setFormVisible(false)} className="rounded-full bg-zinc-100 p-2">
                   <X className="h-5 w-5 text-zinc-500" />
                 </button>
               </div>
 
-              <form className="space-y-4" onSubmit={handleSubmit}>
+	              <form className="space-y-4" onSubmit={handleSubmit}>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <label className="text-xs font-medium text-muted-foreground">Contact</label>
@@ -279,11 +280,12 @@ const AddressListPage = () => {
                     Save Address
                   </button>
                 </div>
-              </form>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+	              </form>
+	              </div>
+	            </motion.div>
+	          </>
+	        )}
+	      </AnimatePresence>
     </div>
   );
 };

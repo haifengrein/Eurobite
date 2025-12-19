@@ -15,14 +15,20 @@ http.interceptors.request.use((config) => {
   const tokenData = localStorage.getItem(tokenKey);
 
   if (tokenData) {
+    let token: string | null = null;
+
     try {
-      const { token } = JSON.parse(tokenData);
-      if (token) {
-        config.headers = config.headers ?? {};
-        config.headers.Authorization = `Bearer ${token}`;
+      const parsed = JSON.parse(tokenData);
+      if (parsed && typeof parsed === "object" && typeof parsed.token === "string") {
+        token = parsed.token;
       }
-    } catch (e) {
-      console.error('Failed to parse token from localStorage', e);
+    } catch {
+      token = tokenData;
+    }
+
+    if (token) {
+      config.headers = config.headers ?? {};
+      config.headers.Authorization = `Bearer ${token}`;
     }
   }
 
@@ -36,4 +42,3 @@ http.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-

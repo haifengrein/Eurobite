@@ -18,12 +18,14 @@ export const MainLayout = () => {
       </main>
 
       {/* Floating Navigation Bar */}
-      <div className="fixed bottom-0 left-1/2 z-50 flex w-full max-w-[430px] -translate-x-1/2 justify-center bg-gradient-to-t from-white/80 to-transparent pb-6 pt-4 pointer-events-none">
-        <nav className="pointer-events-auto flex w-[90%] max-w-sm items-center justify-between rounded-3xl border border-white/40 bg-white/70 p-1.5 shadow-glass backdrop-blur-xl ring-1 ring-black/5">
-          <TabLink to="/" icon={UtensilsCrossed} label="Menu" />
-          <TabLink to="/orders" icon={ClipboardList} label="Orders" />
-          <TabLink to="/profile" icon={User} label="Profile" />
-        </nav>
+      <div className="fixed inset-x-0 bottom-0 z-50 flex justify-center bg-gradient-to-t from-white/80 to-transparent pb-6 pt-4 pointer-events-none">
+        <div className="w-full max-w-[430px] flex justify-center">
+          <nav className="pointer-events-auto flex w-[90%] max-w-sm items-center justify-between rounded-3xl border border-white/40 bg-white/70 p-1.5 shadow-glass backdrop-blur-xl ring-1 ring-black/5">
+            <TabLink to="/" icon={UtensilsCrossed} label="Menu" />
+            <TabLink to="/orders" icon={ClipboardList} label="Orders" />
+            <TabLink to="/profile" icon={User} label="Profile" />
+          </nav>
+        </div>
       </div>
     </div>
   );

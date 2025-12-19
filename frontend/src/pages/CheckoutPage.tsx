@@ -201,8 +201,9 @@ const CheckoutPage = () => {
       </div>
 
       {/* Floating Action Bar */}
-      <div className="fixed bottom-0 left-1/2 z-50 w-full max-w-[430px] -translate-x-1/2 border-t border-zinc-100 bg-white/80 p-4 pb-8 backdrop-blur-xl">
-         <div className="mx-auto max-w-md">
+      <div className="fixed inset-x-0 bottom-0 z-50 flex justify-center">
+        <div className="w-full max-w-[430px] border-t border-zinc-100 bg-white/80 p-4 pb-8 backdrop-blur-xl">
+          <div className="mx-auto max-w-md">
             <button
               onClick={handleSubmit}
               disabled={loading}
@@ -213,11 +214,12 @@ const CheckoutPage = () => {
                 <span className="text-lg font-bold">€{totalAmount.toFixed(2)}</span>
               </div>
               <div className="flex h-12 items-center gap-2 rounded-xl bg-white/20 px-6 font-bold backdrop-blur-sm transition-colors group-hover:bg-white/30">
-                 {loading ? "Processing..." : "Pay Now"}
-                 <ChevronRight className="h-5 w-5" />
+                {loading ? "Processing..." : "Pay Now"}
+                <ChevronRight className="h-5 w-5" />
               </div>
             </button>
-         </div>
+          </div>
+        </div>
       </div>
     </div>
   );

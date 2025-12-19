@@ -271,7 +271,7 @@ jobs:
               }
 
               wait_for_url "http://127.0.0.1/" "frontend" 60
-              wait_for_url "http://127.0.0.1/api/category/list" "backend via nginx proxy" 60
+              wait_for_url "http://127.0.0.1/api/category/list?type=1" "backend via nginx proxy" 60
             else
               echo "WARN: curl 不存在，跳过健康检查"
             fi

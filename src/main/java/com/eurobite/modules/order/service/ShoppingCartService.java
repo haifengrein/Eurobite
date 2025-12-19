@@ -3,6 +3,8 @@ package com.eurobite.modules.order.service;
 import com.eurobite.common.context.BaseContext;
 import com.eurobite.modules.dish.entity.Dish;
 import com.eurobite.modules.dish.repository.DishRepository;
+import com.eurobite.modules.setmeal.entity.Setmeal;
+import com.eurobite.modules.setmeal.repository.SetmealRepository;
 import com.eurobite.modules.order.entity.ShoppingCart;
 import com.eurobite.modules.order.repository.ShoppingCartRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +19,7 @@ public class ShoppingCartService {
 
     private final ShoppingCartRepository shoppingCartRepository;
     private final DishRepository dishRepository;
+    private final SetmealRepository setmealRepository;
 
     public ShoppingCart add(ShoppingCart cart) {
         Long userId = BaseContext.getCurrentId();
@@ -47,6 +50,14 @@ public class ShoppingCartService {
             }
             if (item.getSetmealId() != null && item.getSetmealId().equals(cart.getSetmealId())) {
                 item.setNumber(item.getNumber() + 1);
+                if (item.getSetmealId() != null) {
+                    Setmeal setmeal = setmealRepository.findById(item.getSetmealId()).orElse(null);
+                    if (setmeal != null) {
+                        item.setName(setmeal.getName());
+                        item.setImage(setmeal.getImage());
+                        item.setAmount(setmeal.getPrice());
+                    }
+                }
                 return shoppingCartRepository.save(item);
             }
         }
@@ -60,8 +71,13 @@ public class ShoppingCartService {
             cart.setImage(dish.getImage());
             cart.setAmount(dish.getPrice());
         }
-        // For setmeal, we would need similar logic to fetch setmeal details
-        // For now, assuming setmeal details are provided in the cart object
+        if (cart.getSetmealId() != null) {
+            Setmeal setmeal = setmealRepository.findById(cart.getSetmealId())
+                    .orElseThrow(() -> new RuntimeException("Setmeal not found: " + cart.getSetmealId()));
+            cart.setName(setmeal.getName());
+            cart.setImage(setmeal.getImage());
+            cart.setAmount(setmeal.getPrice());
+        }
 
         return shoppingCartRepository.save(cart);
     }

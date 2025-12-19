@@ -5,14 +5,19 @@ import HomePage from "./HomePage";
 
 vi.mock("@/api/menu", () => ({
   fetchCategories: vi.fn(),
-  fetchDishesByCategory: vi.fn()
+  fetchDishesByCategory: vi.fn(),
+  fetchSetmealsByCategory: vi.fn()
 }));
 
 vi.mock("@/store/cartStore", () => {
   const useCartStore = (selector: any) =>
     selector({
       initCart: vi.fn(),
-      addDish: vi.fn()
+      addDish: vi.fn(),
+      addSetmeal: vi.fn(),
+      decreaseDish: vi.fn(),
+      decreaseSetmeal: vi.fn(),
+      items: []
     });
   const useCartSummary = () => ({ totalCount: 0, totalAmount: 0 });
   return {
@@ -35,7 +40,7 @@ describe("HomePage", () => {
 
   it("应展示分类和菜品列表", async () => {
     (fetchCategories as any).mockResolvedValue([
-      { id: 1, name: "Burgers", type: "dish" as const }
+      { id: 1, name: "Burgers", type: 1 }
     ]);
     (fetchDishesByCategory as any).mockResolvedValue([
       { id: 101, name: "Cheeseburger", price: 9.99 }

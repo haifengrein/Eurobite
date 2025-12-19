@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import {
   fetchCategories,
   fetchDishesByCategory,
+  fetchSetmealsByCategory,
   type Category,
-  type Dish
+  type Dish,
+  type Setmeal
 } from "@/api/menu";
 import { useCartStore, useCartSummary } from "@/store/cartStore";
 import { useNavigate } from "react-router-dom";
@@ -19,6 +21,7 @@ const HomePage = () => {
     null
   );
   const [dishes, setDishes] = useState<Dish[]>([]);
+  const [setmeals, setSetmeals] = useState<Setmeal[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
@@ -26,7 +29,9 @@ const HomePage = () => {
 
   const initCart = useCartStore((state) => state.initCart);
   const addDish = useCartStore((state) => state.addDish);
+  const addSetmeal = useCartStore((state) => state.addSetmeal);
   const decreaseDish = useCartStore((state) => state.decreaseDish);
+  const decreaseSetmeal = useCartStore((state) => state.decreaseSetmeal);
   const cartItems = useCartStore((state) => state.items);
   
   const { totalAmount, totalCount } = useCartSummary();
@@ -56,8 +61,23 @@ const HomePage = () => {
       setLoading(true);
       setError(null);
       try {
+        const category = categories.find((c) => c.id === selectedCategoryId);
+        if (!category) {
+          setDishes([]);
+          setSetmeals([]);
+          return;
+        }
+
+        if (category.type === 2) {
+          const list = await fetchSetmealsByCategory(selectedCategoryId);
+          setSetmeals(list);
+          setDishes([]);
+          return;
+        }
+
         const list = await fetchDishesByCategory(selectedCategoryId);
         setDishes(list);
+        setSetmeals([]);
       } catch (err) {
         const message = err instanceof Error ? err.message : "Failed to load dishes";
         setError(message);
@@ -66,7 +86,7 @@ const HomePage = () => {
       }
     };
     void loadDishes();
-  }, [selectedCategoryId]);
+  }, [selectedCategoryId, categories]);
 
   const handleAddDish = async (dishId: number) => {
     try {
@@ -92,9 +112,38 @@ const HomePage = () => {
     }
   };
 
+  const handleAddSetmeal = async (setmealId: number) => {
+    try {
+      setAnimatingIds((prev) => new Set(prev).add(setmealId));
+      await addSetmeal(setmealId);
+      setTimeout(() => {
+        setAnimatingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(setmealId);
+          return next;
+        });
+      }, 300);
+    } catch (err) {
+      showToast("Failed to add");
+    }
+  };
+
+  const handleDecreaseSetmeal = async (setmealId: number) => {
+    try {
+      await decreaseSetmeal(setmealId);
+    } catch (err) {
+      showToast("Failed to update");
+    }
+  };
+
   // Helper to find quantity in cart
   const getQuantity = (dishId: number) => {
     const item = cartItems.find(i => i.dishId === dishId);
+    return item ? item.number : 0;
+  };
+
+  const getSetmealQuantity = (setmealId: number) => {
+    const item = cartItems.find(i => i.setmealId === setmealId);
     return item ? item.number : 0;
   };
 
@@ -160,10 +209,10 @@ const HomePage = () => {
            </div>
         )}
 
-        {!loading && !error && (
+        {!loading && !error && setmeals.length === 0 && (
           <div className="grid grid-cols-1 gap-5 pb-8">
             {dishes.map((dish, idx) => {
-              const qty = getQuantity(Number(dish.id));
+              const qty = getQuantity(dish.id);
               
               return (
                 <motion.article
@@ -208,7 +257,7 @@ const HomePage = () => {
                       {qty > 0 ? (
                         <div className="flex items-center gap-3 rounded-full bg-zinc-100 p-1">
                           <button
-                            onClick={() => handleDecreaseDish(Number(dish.id))}
+                            onClick={() => handleDecreaseDish(dish.id)}
                             className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-zinc-900 shadow-sm transition-transform active:scale-90"
                           >
                             <Minus className="h-4 w-4" strokeWidth={3} />
@@ -217,7 +266,7 @@ const HomePage = () => {
                             {qty}
                           </span>
                           <button
-                            onClick={() => handleAddDish(Number(dish.id))}
+                            onClick={() => handleAddDish(dish.id)}
                             className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-900 text-white shadow-sm transition-transform active:scale-90"
                           >
                             <Plus className="h-4 w-4" strokeWidth={3} />
@@ -226,19 +275,106 @@ const HomePage = () => {
                       ) : (
                         <motion.button
                           whileTap={{ scale: 0.85 }}
-                          onClick={() => handleAddDish(Number(dish.id))}
+                          onClick={() => handleAddDish(dish.id)}
                           className={clsx(
                             "flex h-10 w-10 items-center justify-center rounded-full shadow-lg transition-all",
-                            animatingIds.has(Number(dish.id))
+                            animatingIds.has(dish.id)
                               ? "bg-green-500 text-white shadow-green-500/30" 
                               : "bg-zinc-900 text-white shadow-zinc-900/20 hover:bg-primary hover:shadow-primary/30"
                           )}
                         >
-                           {animatingIds.has(Number(dish.id)) ? (
+                           {animatingIds.has(dish.id) ? (
                              <ShoppingBag className="h-5 w-5" />
                            ) : (
                              <Plus className="h-5 w-5" strokeWidth={3} />
                            )}
+                        </motion.button>
+                      )}
+                    </div>
+                  </div>
+                </motion.article>
+              );
+            })}
+          </div>
+        )}
+
+        {!loading && !error && setmeals.length > 0 && (
+          <div className="grid grid-cols-1 gap-5 pb-8">
+            {setmeals.map((setmeal, idx) => {
+              const qty = getSetmealQuantity(setmeal.id);
+
+              return (
+                <motion.article
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.05 }}
+                  key={setmeal.id}
+                  className="group relative flex gap-4 overflow-hidden rounded-[2rem] bg-white p-3 shadow-sm ring-1 ring-zinc-50 transition-all hover:shadow-glow"
+                >
+                  <div className="relative aspect-square h-28 w-28 flex-shrink-0 overflow-hidden rounded-[1.5rem] bg-zinc-50">
+                    {setmeal.image ? (
+                      <img
+                        src={setmeal.image}
+                        alt={setmeal.name}
+                        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-orange-50 text-orange-200">
+                        <ShoppingBag className="h-8 w-8" />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-1 flex-col justify-between py-1 pr-1">
+                    <div>
+                      <h3 className="text-base font-bold text-zinc-900 leading-tight">
+                        {setmeal.name}
+                      </h3>
+                      <p className="mt-1 line-clamp-2 text-xs font-medium text-zinc-400">
+                        {setmeal.description || "Curated combo for great value."}
+                      </p>
+                    </div>
+                    
+                    <div className="flex items-end justify-between">
+                      <span className="text-lg font-bold text-zinc-900">
+                        <span className="text-sm font-semibold text-primary align-top">€</span>
+                        {setmeal.price.toFixed(2)}
+                      </span>
+                      
+                      {qty > 0 ? (
+                        <div className="flex items-center gap-3 rounded-full bg-zinc-100 p-1">
+                          <button
+                            onClick={() => handleDecreaseSetmeal(setmeal.id)}
+                            className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-zinc-900 shadow-sm transition-transform active:scale-90"
+                          >
+                            <Minus className="h-4 w-4" strokeWidth={3} />
+                          </button>
+                          <span className="min-w-[1.2rem] text-center text-sm font-bold text-zinc-900">
+                            {qty}
+                          </span>
+                          <button
+                            onClick={() => handleAddSetmeal(setmeal.id)}
+                            className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-900 text-white shadow-sm transition-transform active:scale-90"
+                          >
+                            <Plus className="h-4 w-4" strokeWidth={3} />
+                          </button>
+                        </div>
+                      ) : (
+                        <motion.button
+                          whileTap={{ scale: 0.85 }}
+                          onClick={() => handleAddSetmeal(setmeal.id)}
+                          className={clsx(
+                            "flex h-10 w-10 items-center justify-center rounded-full shadow-lg transition-all",
+                            animatingIds.has(setmeal.id)
+                              ? "bg-green-500 text-white shadow-green-500/30" 
+                              : "bg-zinc-900 text-white shadow-zinc-900/20 hover:bg-primary hover:shadow-primary/30"
+                          )}
+                        >
+                          {animatingIds.has(setmeal.id) ? (
+                            <ShoppingBag className="h-5 w-5" />
+                          ) : (
+                            <Plus className="h-5 w-5" strokeWidth={3} />
+                          )}
                         </motion.button>
                       )}
                     </div>
@@ -257,7 +393,7 @@ const HomePage = () => {
             initial={{ opacity: 0, y: 40, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 40, scale: 0.9 }}
-            className="fixed bottom-28 left-0 right-0 z-40 flex justify-center px-6"
+            className="fixed bottom-28 left-1/2 right-auto z-40 flex w-full max-w-[430px] -translate-x-1/2 justify-center px-6"
           >
             <button
               onClick={() => navigate("/checkout")}

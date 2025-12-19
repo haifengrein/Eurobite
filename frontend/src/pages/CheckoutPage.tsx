@@ -201,7 +201,7 @@ const CheckoutPage = () => {
       </div>
 
       {/* Floating Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-zinc-100 bg-white/80 p-4 pb-8 backdrop-blur-xl">
+      <div className="fixed bottom-0 left-1/2 z-50 w-full max-w-[430px] -translate-x-1/2 border-t border-zinc-100 bg-white/80 p-4 pb-8 backdrop-blur-xl">
          <div className="mx-auto max-w-md">
             <button
               onClick={handleSubmit}

@@ -15,8 +15,10 @@ type CartState = {
   initialized: boolean;
   initCart: () => Promise<void>;
   addDish: (dishId: number) => Promise<void>;
+  addSetmeal: (setmealId: number) => Promise<void>;
   // decreaseDish for Homepage interaction (using dishId to find item)
   decreaseDish: (dishId: number) => Promise<void>; 
+  decreaseSetmeal: (setmealId: number) => Promise<void>;
   decreaseItem: (itemId: number) => Promise<void>;
   removeItem: (itemId: number) => Promise<void>;
   clearAll: () => Promise<void>;
@@ -94,8 +96,50 @@ export const useCartStore = create<CartState>((set, get) => ({
     }
   },
 
+  addSetmeal: async (setmealId: number) => {
+    const prevItems = get().items;
+    const existing = prevItems.find((i) => i.setmealId === setmealId);
+    let optimisticItems: CartItem[];
+
+    if (existing) {
+      optimisticItems = prevItems.map((i) =>
+        i.id === existing.id ? { ...i, number: i.number + 1 } : i
+      );
+    } else {
+      const tempId = Date.now() * -1;
+      optimisticItems = [
+        ...prevItems,
+        {
+          id: tempId,
+          dishId: null,
+          setmealId,
+          name: "",
+          image: "",
+          number: 1,
+          amount: 0
+        }
+      ];
+    }
+    set({ items: optimisticItems });
+
+    try {
+      await addCartItem({ setmealId });
+      const allItems = await fetchCart();
+      set({ items: allItems });
+    } catch (err) {
+      set({ items: prevItems });
+      throw err;
+    }
+  },
+
   decreaseDish: async (dishId: number) => {
     const item = get().items.find(i => i.dishId === dishId);
+    if (!item) return;
+    await get().decreaseItem(item.id);
+  },
+
+  decreaseSetmeal: async (setmealId: number) => {
+    const item = get().items.find(i => i.setmealId === setmealId);
     if (!item) return;
     await get().decreaseItem(item.id);
   },

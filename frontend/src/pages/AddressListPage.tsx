@@ -204,7 +204,7 @@ const AddressListPage = () => {
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="fixed bottom-0 left-0 right-0 z-50 rounded-t-[32px] bg-white p-6 pb-10 shadow-2xl"
+              className="fixed bottom-0 left-1/2 z-50 w-full max-w-[430px] -translate-x-1/2 rounded-t-[32px] bg-white p-6 pb-10 shadow-2xl"
             >
               <div className="mx-auto mb-6 h-1 w-12 rounded-full bg-zinc-200" />
               

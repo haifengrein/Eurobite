@@ -2,6 +2,7 @@ import { Route, Routes } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import { MainLayout } from "./layouts/MainLayout";
 import { RequireAuth } from "./components/RequireAuth";
+import { MobileShell } from "./layouts/MobileShell";
 
 // C端页面
 const HomePage = lazy(() => import("./pages/HomePage"));
@@ -39,55 +40,58 @@ const App = () => {
       }
     >
       <Routes>
-        {/* Auth */}
-        <Route path="/login" element={<LoginPage />} />
+        {/* C端：桌面端也保持移动端宽度 */}
+        <Route element={<MobileShell />}>
+          {/* Auth */}
+          <Route path="/login" element={<LoginPage />} />
 
-        {/* Tab Pages (With Bottom Nav) */}
-        <Route element={<MainLayout />}>
-          <Route path="/" element={<HomePage />} />
+          {/* Tab Pages (With Bottom Nav) */}
+          <Route element={<MainLayout />}>
+            <Route path="/" element={<HomePage />} />
+            <Route
+              path="/orders"
+              element={
+                <RequireAuth>
+                  <OrdersPage />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <RequireAuth>
+                  <ProfilePage />
+                </RequireAuth>
+              }
+            />
+          </Route>
+
+          {/* Full Screen Pages (No Bottom Nav) */}
           <Route
-            path="/orders"
+            path="/checkout"
             element={
               <RequireAuth>
-                <OrdersPage />
+                <CheckoutPage />
               </RequireAuth>
             }
           />
           <Route
-            path="/profile"
+            path="/addresses"
             element={
               <RequireAuth>
-                <ProfilePage />
+                <AddressListPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/orders/:orderId"
+            element={
+              <RequireAuth>
+                <OrderDetailPage />
               </RequireAuth>
             }
           />
         </Route>
-
-        {/* Full Screen Pages (No Bottom Nav) */}
-        <Route
-          path="/checkout"
-          element={
-            <RequireAuth>
-              <CheckoutPage />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/addresses"
-          element={
-            <RequireAuth>
-              <AddressListPage />
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/orders/:orderId"
-          element={
-            <RequireAuth>
-              <OrderDetailPage />
-            </RequireAuth>
-          }
-        />
 
         {/* Admin Routes */}
         <Route path="/admin/login" element={<AdminLoginPage />} />

@@ -1,235 +1,210 @@
 -- ==================================================
--- V6: 插入测试数据 (Test Data for C-End Business)
+-- V8: Insert EuroBite Data (DE/IT/FR) - Extended Edition
 -- ==================================================
 
--- 1. 插入员工数据 (Admin Users)
+-- 1. CLEANUP OLD DATA
+TRUNCATE TABLE order_detail, orders, setmeal_dish, setmeal, address_book, shopping_cart, dish_flavor, dish, category, employee, users RESTART IDENTITY CASCADE;
+
+-- 2. INSERT EMPLOYEES
 INSERT INTO employee (username, name, password, phone, sex, status, create_time, update_time) VALUES
-('admin', '系统管理员', '$2a$10$7JB720yubVSOfv2O6g8weuGY0w5.YWZY5fZlKW5z5f5z5f5f5f5f5f', '13800138001', '1', 1, NOW(), NOW()),
-('manager', '运营经理', '$2a$10$7JB720yubVSOfv2O6g8weuGY0w5.YWZY5fZlKW5z5f5f5z5f5f5f', '13800138002', '1', 1, NOW(), NOW()),
-('chef', '厨师长', '$2a$10$7JB720yubVSOfv2O6g8weuGY0w5.YWZY5fZlKW5z5f5f5f5f5f5f', '13800138003', '1', 1, NOW(), NOW());
+('admin', 'System Admin', '$2a$10$7JB720yubVSOfv2O6g8weuGY0w5.YWZY5fZlKW5z5f5z5f5f5f5f5f', '+49 170 0000001', '1', 1, NOW(), NOW()),
+('manager', 'Operations Manager', '$2a$10$7JB720yubVSOfv2O6g8weuGY0w5.YWZY5fZlKW5z5f5f5z5f5f5f', '+33 6 00 00 00 02', '1', 1, NOW(), NOW()),
+('chef', 'Head Chef', '$2a$10$7JB720yubVSOfv2O6g8weuGY0w5.YWZY5fZlKW5z5f5f5f5f5f5f', '+39 300 0000003', '1', 1, NOW(), NOW());
 
--- 2. 插入分类数据 (Dish Categories)
+-- 3. INSERT CATEGORIES
 INSERT INTO category (type, name, sort, create_time, update_time) VALUES
--- 菜品分类 (type = 1)
-(1, '热销菜品', 1, NOW(), NOW()),
-(1, '招牌主食', 2, NOW(), NOW()),
-(1, '精美小食', 3, NOW(), NOW()),
-(1, '汤羹类', 4, NOW(), NOW()),
-(1, '素食主义', 5, NOW(), NOW()),
-(1, '肉食天堂', 6, NOW(), NOW()),
-(1, '饮品甜点', 7, NOW(), NOW()),
+-- Dish Categories (type = 1)
+(1, 'Best Sellers', 1, NOW(), NOW()),
+(1, 'Signature Mains', 2, NOW(), NOW()),
+(1, 'Appetizers', 3, NOW(), NOW()),
+(1, 'Soups & Salads', 4, NOW(), NOW()),
+(1, 'Vegetarian', 5, NOW(), NOW()),
+(1, 'Meat Lovers', 6, NOW(), NOW()),
+(1, 'Seafood & Fish', 7, NOW(), NOW()),
+(1, 'Pasta & Risotto', 8, NOW(), NOW()),
+(1, 'Desserts', 9, NOW(), NOW()),
+(1, 'Beverages', 10, NOW(), NOW()),
 
--- 套餐分类 (type = 2)
-(2, '商务套餐', 1, NOW(), NOW()),
-(2, '单人套餐', 2, NOW(), NOW()),
-(2, '双人套餐', 3, NOW(), NOW()),
-(2, '家庭套餐', 4, NOW(), NOW()),
-(2, '营养搭配', 5, NOW(), NOW());
+-- Setmeal Categories (type = 2)
+(2, 'Business Lunch', 1, NOW(), NOW()),
+(2, 'Dinner Sets', 2, NOW(), NOW()),
+(2, 'Family Feast', 3, NOW(), NOW()),
+(2, 'Couples Special', 4, NOW(), NOW());
 
--- 3. 插入菜品数据 (Dishes)
+-- 4. INSERT DISHES
 INSERT INTO dish (name, category_id, price, description, status, sort, create_time, update_time) VALUES
--- 热销菜品
-('宫保鸡丁', 1, 28.80, '经典川菜，鸡肉嫩滑，花生酥脆，酸甜微辣', 1, 1, NOW(), NOW()),
-('麻婆豆腐', 1, 18.80, '四川传统名菜，豆腐嫩滑，麻辣鲜香', 1, 2, NOW(), NOW()),
-('水煮鱼', 1, 58.80, '川菜经典，鱼片嫩滑，麻辣过瘾', 1, 3, NOW(), NOW()),
-('回锅肉', 1, 32.80, '川菜之王，肥瘦相间，香辣下饭', 1, 4, NOW(), NOW()),
+-- Best Sellers (Cat 1)
+('Pizza Margherita', 1, 12.50, 'Classic Italian pizza with tomatoes, mozzarella, and basil.', 1, 1, NOW(), NOW()),
+('Wiener Schnitzel', 1, 19.50, 'Breaded veal cutlet served with lemon and potato salad.', 1, 2, NOW(), NOW()),
+('Coq au Vin', 1, 22.00, 'Chicken braised with wine, lardons, and mushrooms.', 1, 3, NOW(), NOW()),
+('Tiramisu', 1, 8.50, 'Coffee-flavoured Italian dessert.', 1, 4, NOW(), NOW()),
 
--- 招牌主食
-('蛋炒饭', 2, 15.80, '粒粒分明，配菜丰富，香气扑鼻', 1, 1, NOW(), NOW()),
-('牛肉面', 2, 26.80, '手工拉面，牛肉鲜美，汤汁浓郁', 1, 2, NOW(), NOW()),
-('扬州炒饭', 2, 22.80, '经典炒饭，虾仁火腿，色香味俱全', 1, 3, NOW(), NOW()),
-('红烧牛肉面', 2, 28.80, '浓郁汤底，牛肉软烂，面条劲道', 1, 4, NOW(), NOW()),
+-- Signature Mains (Cat 2)
+('Beef Wellington', 2, 32.00, 'Steak coated with pâté and duxelles, wrapped in puff pastry.', 1, 1, NOW(), NOW()),
+('Osso Buco', 2, 28.00, 'Milanese veal shanks braised with vegetables and white wine.', 1, 2, NOW(), NOW()),
+('Sauerbraten', 2, 21.50, 'Marinated pot roast, a German national dish.', 1, 3, NOW(), NOW()),
+('Duck Confit', 2, 24.00, 'Slow-cooked duck legs, crispy skin and tender meat.', 1, 4, NOW(), NOW()),
+('Schweinshaxe', 2, 26.50, 'Roasted pork knuckle, crispy skin, served with sauerkraut.', 1, 5, NOW(), NOW()),
 
--- 精美小食
-('小笼包', 3, 16.80, '皮薄馅大，汤汁鲜美，上海特色', 1, 1, NOW(), NOW()),
-('春卷', 3, 12.80, '酥脆可口，馅料丰富', 1, 2, NOW(), NOW()),
-('蒸饺', 3, 18.80, '手工制作，皮薄馅足', 1, 3, NOW(), NOW()),
-('煎饺', 3, 18.80, '底部金黄，外酥内嫩', 1, 4, NOW(), NOW()),
+-- Appetizers (Cat 3)
+('Bruschetta', 3, 7.50, 'Grilled bread with garlic, tomatoes, and olive oil.', 1, 1, NOW(), NOW()),
+('Escargots', 3, 12.00, 'Burgundy snails with garlic herb butter.', 1, 2, NOW(), NOW()),
+('Beef Carpaccio', 3, 14.50, 'Thinly sliced raw beef with parmesan and arugula.', 1, 3, NOW(), NOW()),
+('Arancini', 3, 9.00, 'Fried rice balls coated with breadcrumbs.', 1, 4, NOW(), NOW()),
+('Flammkuchen', 3, 11.00, 'Alsatian thin crust pizza with crème fraîche, onions, and bacon.', 1, 5, NOW(), NOW()),
+('Caprese Salad', 3, 11.50, 'Mozzarella, tomatoes, and sweet basil.', 1, 6, NOW(), NOW()),
 
--- 汤羹类
-('紫菜蛋花汤', 4, 12.80, '清淡鲜美，营养丰富', 1, 1, NOW(), NOW()),
-('冬瓜排骨汤', 4, 28.80, '清淡解腻，滋补养颜', 1, 2, NOW(), NOW()),
-('西红柿鸡蛋汤', 4, 15.80, '酸甜开胃，营养均衡', 1, 3, NOW(), NOW()),
-('酸辣汤', 4, 18.80, '酸辣开胃，暖胃驱寒', 1, 4, NOW(), NOW()),
+-- Soups & Salads (Cat 4)
+('French Onion Soup', 4, 9.00, 'Gratinéed with croutons and cheese.', 1, 1, NOW(), NOW()),
+('Minestrone', 4, 8.00, 'Thick vegetable soup with pasta.', 1, 2, NOW(), NOW()),
+('Lobster Bisque', 4, 14.00, 'Creamy soup based on strained broth of crustaceans.', 1, 3, NOW(), NOW()),
+('Kartoffelsuppe', 4, 7.50, 'German potato soup with sausage.', 1, 4, NOW(), NOW()),
+('Nicoise Salad', 4, 13.50, 'Salad with tuna, hard-boiled eggs, olives, and anchovies.', 1, 5, NOW(), NOW()),
+('Caesar Salad', 4, 12.00, 'Romaine lettuce, croutons, parmesan, and caesar dressing.', 1, 6, NOW(), NOW()),
 
--- 素食主义
-('清炒时蔬', 5, 16.80, '新鲜时令蔬菜，清淡健康', 1, 1, NOW(), NOW()),
-('麻婆豆腐(素)', 5, 16.80, '素食版本，同样美味', 1, 2, NOW(), NOW()),
-('干煸四季豆', 5, 20.80, '四季豆脆嫩，干香微辣', 1, 3, NOW(), NOW()),
-('蒜蓉西兰花', 5, 18.80, '清淡爽口，营养丰富', 1, 4, NOW(), NOW()),
+-- Vegetarian (Cat 5)
+('Ratatouille', 5, 16.00, 'Provençal stewed vegetables.', 1, 1, NOW(), NOW()),
+('Käsespätzle', 5, 14.50, 'Cheese noodles with roasted onions.', 1, 2, NOW(), NOW()),
+('Eggplant Parmigiana', 5, 15.50, 'Sliced eggplant layered with cheese and tomato sauce.', 1, 3, NOW(), NOW()),
+('Spinach Quiche', 5, 11.00, 'Savory pie with spinach and cheese.', 1, 4, NOW(), NOW()),
 
--- 肉食天堂
-('红烧肉', 6, 38.80, '肥瘦相间，软糯香甜', 1, 1, NOW(), NOW()),
-('糖醋里脊', 6, 32.80, '酸甜可口，外酥内嫩', 1, 2, NOW(), NOW()),
-('可乐鸡翅', 6, 26.80, '甜香嫩滑，老少皆宜', 1, 3, NOW(), NOW()),
-('红烧排骨', 6, 36.80, '排骨软烂，色泽红亮', 1, 4, NOW(), NOW()),
+-- Meat Lovers (Cat 6)
+('Steak Frites', 6, 28.00, 'Ribeye steak with french fries.', 1, 1, NOW(), NOW()),
+('Currywurst', 6, 10.50, 'Sausage with curry ketchup and fries.', 1, 2, NOW(), NOW()),
+('Rouladen', 6, 22.50, 'Rolled beef filled with bacon, pickles, and onions.', 1, 3, NOW(), NOW()),
+('Cordon Bleu', 6, 20.00, 'Meat wrapped around cheese, then breaded and pan-fried.', 1, 4, NOW(), NOW()),
+('Bratwurst Plate', 6, 15.00, 'Grilled sausages with mustard and bread.', 1, 5, NOW(), NOW()),
 
--- 饮品甜点
-('珍珠奶茶', 7, 18.80, '香浓奶茶配Q弹珍珠', 1, 1, NOW(), NOW()),
-('红豆冰', 7, 16.80, '夏日消暑，甜而不腻', 1, 2, NOW(), NOW()),
-('芒果布丁', 7, 20.80, '嫩滑香甜，芒果味浓', 1, 3, NOW(), NOW()),
-('银耳莲子汤', 7, 15.80, '滋阴润燥，清热降火', 1, 4, NOW(), NOW());
+-- Seafood & Fish (Cat 7)
+('Bouillabaisse', 7, 30.00, 'Traditional Provençal fish stew.', 1, 1, NOW(), NOW()),
+('Grilled Salmon', 7, 24.00, 'With lemon butter sauce and asparagus.', 1, 2, NOW(), NOW()),
+('Fritto Misto', 7, 22.00, 'Mixed fried seafood.', 1, 3, NOW(), NOW()),
+('Moules Marinières', 7, 19.50, 'Mussels cooked in white wine and garlic.', 1, 4, NOW(), NOW()),
 
--- 4. 插入菜品口味数据 (Dish Flavors)
+-- Pasta & Risotto (Cat 8)
+('Spaghetti Carbonara', 8, 15.00, 'Pancetta, egg, and pecorino cheese.', 1, 1, NOW(), NOW()),
+('Lasagna Classico', 8, 16.50, 'Layered pasta with ragu and bechamel.', 1, 2, NOW(), NOW()),
+('Risotto alla Milanese', 8, 18.00, 'Saffron infused creamy rice.', 1, 3, NOW(), NOW()),
+('Tagliatelle Bolognese', 8, 15.50, 'Slow cooked meat sauce.', 1, 4, NOW(), NOW()),
+('Penne Arrabbiata', 8, 13.00, 'Spicy tomato sauce.', 1, 5, NOW(), NOW()),
+
+-- Desserts (Cat 9)
+('Crème Brûlée', 9, 9.50, 'Custard with caramelized sugar top.', 1, 1, NOW(), NOW()),
+('Panna Cotta', 9, 8.00, 'Creamy Italian dessert with berry coulis.', 1, 2, NOW(), NOW()),
+('Apple Strudel', 9, 8.50, 'Pastry with spiced apple filling.', 1, 3, NOW(), NOW()),
+('Black Forest Cake', 9, 9.00, 'Chocolate, cherries, and whipped cream.', 1, 4, NOW(), NOW()),
+('Profiteroles', 9, 8.50, 'Choux pastry balls filled with cream and chocolate sauce.', 1, 5, NOW(), NOW()),
+('Gelato Selection', 9, 7.00, 'Three scoops of Italian ice cream.', 1, 6, NOW(), NOW()),
+
+-- Beverages (Cat 10)
+('Espresso', 10, 3.00, 'Strong black coffee.', 1, 1, NOW(), NOW()),
+('Cappuccino', 10, 4.00, 'Coffee with steamed milk foam.', 1, 2, NOW(), NOW()),
+('Mineral Water', 10, 2.50, 'Sparkling or Still.', 1, 3, NOW(), NOW()),
+('Cola', 10, 3.50, 'Classic soft drink.', 1, 4, NOW(), NOW()),
+('Draft Beer', 10, 5.00, '0.5L Lager.', 1, 5, NOW(), NOW()),
+('Red Wine Glass', 10, 6.50, 'House Red.', 1, 6, NOW(), NOW()),
+('White Wine Glass', 10, 6.50, 'House White.', 1, 7, NOW(), NOW());
+
+-- 5. INSERT DISH FLAVORS
 INSERT INTO dish_flavor (dish_id, name, value, create_time, update_time) VALUES
--- 宫保鸡丁口味
-(1, '辣度', '["微辣","中辣","重辣"]', NOW(), NOW()),
-(1, '口味偏好', '["经典","少糖","多醋"]', NOW(), NOW()),
+(1, 'Size', '["Medium", "Large"]', NOW(), NOW()),
+(15, 'Cheese', '["Emmental", "Gruyère"]', NOW(), NOW()),
+(25, 'Doneness', '["Rare", "Medium", "Well Done"]', NOW(), NOW()),
+(29, 'Doneness', '["Medium", "Well Done"]', NOW(), NOW()),
+(46, 'Scoops', '["Vanilla", "Chocolate", "Strawberry", "Pistachio"]', NOW(), NOW());
 
--- 麻婆豆腐口味
-(2, '辣度', '["微辣","中辣","重辣"]', NOW(), NOW()),
-(2, '口感', '["嫩滑","Q弹"]', NOW(), NOW()),
-
--- 水煮鱼口味
-(3, '辣度', '["中辣","重辣","超辣"]', NOW(), NOW()),
-(3, '鱼片厚度', '["薄片","厚片"]', NOW(), NOW()),
-
--- 小笼包口味
-(9, '肉馅', '["猪肉","虾仁","蟹黄"]', NOW(), NOW()),
-(9, '汤汁', '["清淡","正常","浓郁"]', NOW(), NOW()),
-
--- 珍珠奶茶口味
-(25, '甜度', '["无糖","微糖","半糖","正常","多糖"]', NOW(), NOW()),
-(25, '珍珠', '["正常","少珍珠","多珍珠","加布丁"]', NOW(), NOW());
-
--- 5. 插入用户数据 (Customers)
+-- 6. INSERT USERS (Customers with European Phones)
 INSERT INTO users (phone, status, create_time, update_time) VALUES
-('13900000001', 1, NOW() - INTERVAL '30 days', NOW()),
-('13900000002', 1, NOW() - INTERVAL '25 days', NOW()),
-('13900000003', 1, NOW() - INTERVAL '20 days', NOW()),
-('13900000004', 1, NOW() - INTERVAL '18 days', NOW()),
-('13900000005', 1, NOW() - INTERVAL '15 days', NOW()),
-('13900000006', 1, NOW() - INTERVAL '12 days', NOW()),
-('13900000007', 1, NOW() - INTERVAL '10 days', NOW()),
-('13900000008', 1, NOW() - INTERVAL '8 days', NOW()),
-('13900000009', 1, NOW() - INTERVAL '5 days', NOW()),
-('13900000010', 1, NOW() - INTERVAL '3 days', NOW()),
-('13900000011', 1, NOW() - INTERVAL '2 days', NOW()),
-('13900000012', 1, NOW() - INTERVAL '1 days', NOW()),
-('13900000013', 1, NOW(), NOW()),
-('13900000014', 1, NOW() - INTERVAL '6 hours', NOW()),
-('13900000015', 1, NOW() - INTERVAL '2 hours', NOW());
+('+49 151 12345601', 1, NOW() - INTERVAL '40 days', NOW()),
+('+49 151 12345602', 1, NOW() - INTERVAL '35 days', NOW()),
+('+49 170 98765403', 1, NOW() - INTERVAL '30 days', NOW()),
+('+49 171 55500004', 1, NOW() - INTERVAL '28 days', NOW()),
+('+33 6 12 34 56 05', 1, NOW() - INTERVAL '25 days', NOW()),
+('+33 6 98 76 54 06', 1, NOW() - INTERVAL '22 days', NOW()),
+('+33 7 00 11 22 07', 1, NOW() - INTERVAL '20 days', NOW()),
+('+39 333 1234508', 1, NOW() - INTERVAL '18 days', NOW()),
+('+39 340 5678909', 1, NOW() - INTERVAL '15 days', NOW()),
+('+39 320 0001110', 1, NOW() - INTERVAL '14 days', NOW()),
+('+49 160 11122211', 1, NOW() - INTERVAL '12 days', NOW()),
+('+33 6 55 44 33 12', 1, NOW() - INTERVAL '10 days', NOW()),
+('+39 388 9998813', 1, NOW() - INTERVAL '8 days', NOW()),
+('+49 172 3334414', 1, NOW() - INTERVAL '7 days', NOW()),
+('+33 6 22 33 44 15', 1, NOW() - INTERVAL '6 days', NOW()),
+('+39 335 6677816', 1, NOW() - INTERVAL '5 days', NOW()),
+('+49 152 0000017', 1, NOW() - INTERVAL '4 days', NOW()),
+('+33 6 11 22 33 18', 1, NOW() - INTERVAL '3 days', NOW()),
+('+39 347 4455619', 1, NOW() - INTERVAL '2 days', NOW()),
+('+49 175 6667720', 1, NOW() - INTERVAL '1 days', NOW()),
+('+33 7 88 99 00 21', 1, NOW(), NOW()),
+('+39 331 2233422', 1, NOW(), NOW());
 
--- 6. 插入地址数据 (User Addresses)
+-- 7. INSERT ADDRESSES
 INSERT INTO address_book (user_id, consignee, sex, phone, province_code, province_name, city_code, city_name, district_code, district_name, detail, label, is_default, create_time, update_time) VALUES
--- 为前5个用户添加默认地址
-(1, '张三', '1', '13900000001', '11', '北京市', '1101', '市辖区', '1101', '朝阳区', '朝阳门外大街1号', '家', true, NOW() - INTERVAL '30 days', NOW()),
-(2, '李四', '2', '13900000002', '31', '上海市', '3101', '市辖区', '3101', '黄浦区', '南京东路2号', '公司', true, NOW() - INTERVAL '25 days', NOW()),
-(3, '王五', '1', '13900000003', '44', '广东省', '4403', '深圳市', '4403', '南山区', '深南大道3号', '家', true, NOW() - INTERVAL '20 days', NOW()),
-(4, '赵六', '2', '13900000004', '33', '浙江省', '3301', '杭州市', '3301', '西湖区', '文三路4号', '公司', true, NOW() - INTERVAL '18 days', NOW()),
-(5, '钱七', '1', '13900000005', '57', '甘肃省', '5701', '兰州市', '5701', '城关区', '东方红广场5号', '家', true, NOW() - INTERVAL '15 days', NOW());
+(1, 'Lukas Schmidt', '1', '+49 151 12345601', '100', 'Berlin', '101', 'Berlin', '101', 'Mitte', 'Unter den Linden 5', 'Home', true, NOW(), NOW()),
+(2, 'Emma Weber', '2', '+49 151 12345602', '100', 'Berlin', '101', 'Berlin', '101', 'Kreuzberg', 'Oranienstrasse 20', 'Work', true, NOW(), NOW()),
+(3, 'Maximilian Mueller', '1', '+49 170 98765403', '400', 'Bavaria', '401', 'Munich', '401', 'Maxvorstadt', 'Schellingstrasse 12', 'Home', true, NOW(), NOW()),
+(4, 'Sophie Wagner', '2', '+49 171 55500004', '400', 'Bavaria', '401', 'Munich', '401', 'Schwabing', 'Leopoldstrasse 45', 'Home', true, NOW(), NOW()),
+(5, 'Camille Dubois', '2', '+33 6 12 34 56 05', '300', 'Ile-de-France', '301', 'Paris', '301', 'Le Marais', 'Rue de Turenne 15', 'Home', true, NOW(), NOW()),
+(6, 'Gabriel Laurent', '1', '+33 6 98 76 54 06', '300', 'Ile-de-France', '301', 'Paris', '301', 'Montmartre', 'Rue Lepic 10', 'Work', true, NOW(), NOW()),
+(7, 'Lea Petit', '2', '+33 7 00 11 22 07', '300', 'Ile-de-France', '301', 'Paris', '301', 'Latin Quarter', 'Rue des Ecoles 5', 'Home', true, NOW(), NOW()),
+(8, 'Alessandro Ricci', '1', '+39 333 1234508', '200', 'Lazio', '201', 'Rome', '201', 'Trastevere', 'Via della Lungaretta 8', 'Home', true, NOW(), NOW()),
+(9, 'Sofia Romano', '2', '+39 340 5678909', '200', 'Lazio', '201', 'Rome', '201', 'Monti', 'Via dei Serpenti 22', 'Work', true, NOW(), NOW()),
+(10, 'Matteo Esposito', '1', '+39 320 0001110', '500', 'Lombardy', '501', 'Milan', '501', 'Brera', 'Via Fiori Chiari 3', 'Home', true, NOW(), NOW()),
+(11, 'Hanna Fischer', '2', '+49 160 11122211', '100', 'Berlin', '101', 'Berlin', '101', 'Prenzlauer Berg', 'Kastanienallee 80', 'Home', true, NOW(), NOW()),
+(12, 'Louis Martin', '1', '+33 6 55 44 33 12', '310', 'Provence', '311', 'Lyon', '311', 'Vieux Lyon', 'Rue Saint-Jean 10', 'Work', true, NOW(), NOW()),
+(13, 'Giuseppe Bianchi', '1', '+39 388 9998813', '600', 'Campania', '601', 'Naples', '601', 'Centro', 'Via Toledo 100', 'Home', true, NOW(), NOW()),
+(14, 'Leon Hoffman', '1', '+49 172 3334414', '700', 'Hamburg', '701', 'Hamburg', '701', 'Altona', 'Ottenser Hauptstr 20', 'Home', true, NOW(), NOW()),
+(15, 'Manon Bernard', '2', '+33 6 22 33 44 15', '320', 'Riviera', '321', 'Nice', '321', 'Promenade', 'Promenade des Anglais 50', 'Home', true, NOW(), NOW()),
+(16, 'Francesca Conti', '2', '+39 335 6677816', '700', 'Tuscany', '701', 'Florence', '701', 'Duomo', 'Piazza del Duomo 1', 'Work', true, NOW(), NOW()),
+(17, 'Paul Becker', '1', '+49 152 0000017', '100', 'Berlin', '101', 'Berlin', '101', 'Friedrichshain', 'Simon-Dach-Strasse 12', 'Home', true, NOW(), NOW()),
+(18, 'Chloe Thomas', '2', '+33 6 11 22 33 18', '300', 'Ile-de-France', '301', 'Paris', '301', 'Bastille', 'Rue de la Roquette 25', 'Home', true, NOW(), NOW()),
+(19, 'Lorenzo Costa', '1', '+39 347 4455619', '800', 'Veneto', '801', 'Venice', '801', 'San Marco', 'Calle Larga 22', 'Home', true, NOW(), NOW()),
+(20, 'Felix Koch', '1', '+49 175 6667720', '400', 'Bavaria', '401', 'Munich', '401', 'Glockenbach', 'Muellerstrasse 10', 'Work', true, NOW(), NOW());
 
--- 7. 插入套餐数据 (Setmeals)
+-- 8. INSERT SETMEALS
 INSERT INTO setmeal (category_id, name, price, description, status, create_time, update_time) VALUES
--- 商务套餐
-(8, '商务午餐A', 38.80, '两荤一素一汤，营养均衡', 1, NOW(), NOW()),
-(8, '商务午餐B', 42.80, '三荤两素一汤，商务首选', 1, NOW(), NOW()),
-(8, '商务午餐C', 48.80, '四荤两素一汤，丰盛套餐', 1, NOW(), NOW()),
+-- Business Lunch (Cat 11)
+(11, 'Schnitzel Express', 22.00, 'Wiener Schnitzel + Drink.', 1, NOW(), NOW()),
+(11, 'Pasta Deal', 18.00, 'Pasta of choice + Salad.', 1, NOW(), NOW()),
+-- Dinner Sets (Cat 12)
+(12, 'French Evening', 35.00, 'Onion Soup, Coq au Vin, Crème Brûlée.', 1, NOW(), NOW()),
+(12, 'Italian Night', 32.00, 'Bruschetta, Lasagna, Tiramisu.', 1, NOW(), NOW()),
+-- Family Feast (Cat 13)
+(13, 'Family Pizza Party', 50.00, '4 Pizzas + 4 Drinks.', 1, NOW(), NOW()),
+(13, 'Sunday Roast', 65.00, 'Whole Roast Chicken + Sides.', 1, NOW(), NOW());
 
--- 单人套餐
-(9, '单人经济餐', 26.80, '一荤一素一汤，实惠选择', 1, NOW(), NOW()),
-(9, '单人豪华餐', 36.80, '两荤一素一汤，品质保证', 1, NOW(), NOW()),
-
--- 双人套餐
-(10, '双人分享餐', 68.80, '两荤两素一汤，适合两人', 1, NOW(), NOW()),
-(10, '双人浪漫餐', 88.80, '三荤两素一汤，浪漫约会', 1, NOW(), NOW()),
-
--- 家庭套餐
-(11, '三人家庭餐', 98.80, '三荤三素一汤，温馨家庭', 1, NOW(), NOW()),
-(11, '四人家庭餐', 128.80, '四荤三素一汤，家人共享', 1, NOW(), NOW()),
-
--- 营养搭配
-(12, '营养均衡餐', 45.80, '科学搭配，营养全面', 1, NOW(), NOW()),
-(12, '低脂健康餐', 42.80, '低脂高蛋白，健康之选', 1, NOW(), NOW());
-
--- 8. 插入套餐菜品关联数据 (Setmeal-Dish Relations)
+-- 9. INSERT SETMEAL-DISH RELATIONS
 INSERT INTO setmeal_dish (setmeal_id, dish_id, name, price, copies, sort, create_time, update_time) VALUES
--- 商务午餐A套餐内容
-(1, 1, '宫保鸡丁', 28.80, 1, 1, NOW(), NOW()),
-(1, 7, '蛋炒饭', 15.80, 1, 2, NOW(), NOW()),
-(1, 15, '紫菜蛋花汤', 12.80, 1, 3, NOW(), NOW()),
+-- Schnitzel Express (ID 1)
+(1, 2, 'Wiener Schnitzel', 19.50, 1, 1, NOW(), NOW()),
+(1, 51, 'Cola', 3.50, 1, 2, NOW(), NOW()),
+-- French Evening (ID 3)
+(3, 15, 'French Onion Soup', 9.00, 1, 1, NOW(), NOW()),
+(3, 3, 'Coq au Vin', 22.00, 1, 2, NOW(), NOW()),
+(3, 41, 'Crème Brûlée', 9.50, 1, 3, NOW(), NOW());
 
--- 商务午餐B套餐内容
-(2, 3, '水煮鱼', 58.80, 1, 1, NOW(), NOW()),
-(2, 6, '牛肉面', 26.80, 1, 2, NOW(), NOW()),
-(2, 19, '蒜蓉西兰花', 18.80, 1, 3, NOW(), NOW()),
-(2, 14, '西红柿鸡蛋汤', 15.80, 1, 4, NOW(), NOW()),
-
--- 单人经济餐套餐内容
-(4, 2, '麻婆豆腐', 18.80, 1, 1, NOW(), NOW()),
-(4, 17, '干煸四季豆', 20.80, 1, 2, NOW(), NOW()),
-(4, 13, '冬瓜排骨汤', 28.80, 1, 3, NOW(), NOW()),
-
--- 双人分享餐套餐内容
-(6, 5, '回锅肉', 32.80, 1, 1, NOW(), NOW()),
-(6, 21, '红烧肉', 38.80, 1, 2, NOW(), NOW()),
-(6, 6, '牛肉面', 26.80, 2, 3, NOW(), NOW()),
-(6, 17, '干煸四季豆', 20.80, 1, 4, NOW(), NOW()),
-
--- 三人家庭餐套餐内容
-(8, 21, '红烧肉', 38.80, 1, 1, NOW(), NOW()),
-(8, 5, '回锅肉', 32.80, 1, 2, NOW(), NOW()),
-(8, 22, '糖醋里脊', 32.80, 1, 3, NOW(), NOW()),
-(8, 7, '蛋炒饭', 15.80, 3, 4, NOW(), NOW()),
-(8, 15, '紫菜蛋花汤', 12.80, 1, 5, NOW(), NOW());
-
--- 9. 插入订单数据 (Orders)
--- 最近30天的订单
+-- 10. INSERT ORDERS (Sample of 30 orders for brevity but diversity)
 INSERT INTO orders (number, status, user_id, order_time, checkout_time, pay_method, amount, remark, phone, address, user_name, consignee, create_time, update_time) VALUES
--- 已完成订单
-('202412090001', 4, 1, NOW() - INTERVAL '2 hours', NOW() - INTERVAL '90 minutes', 1, 56.80, '不要香菜', '13900000001', '朝阳门外大街1号', '张三', '张三', NOW() - INTERVAL '2 hours', NOW() - INTERVAL '90 minutes'),
-('202412090002', 4, 2, NOW() - INTERVAL '3 hours', NOW() - INTERVAL '2 hours', 2, 68.80, '', '13900000002', '南京东路2号', '李四', '李四', NOW() - INTERVAL '3 hours', NOW() - INTERVAL '2 hours'),
-('202412090003', 4, 3, NOW() - INTERVAL '4 hours', NOW() - INTERVAL '3 hours', 1, 88.80, '微辣', '13900000003', '深南大道3号', '王五', '王五', NOW() - INTERVAL '4 hours', NOW() - INTERVAL '3 hours'),
-('202412080001', 4, 4, NOW() - INTERVAL '1 days', NOW() - INTERVAL '20 hours', 1, 45.80, '', '13900000004', '文三路4号', '赵六', '赵六', NOW() - INTERVAL '1 days', NOW() - INTERVAL '20 hours'),
-('202412080002', 4, 5, NOW() - INTERVAL '1 days 2 hours', NOW() - INTERVAL '21 hours', 2, 128.80, '多要米饭', '13900000005', '东方红广场5号', '钱七', '钱七', NOW() - INTERVAL '1 days 2 hours', NOW() - INTERVAL '21 hours'),
+('ORD-001', 4, 1, NOW() - INTERVAL '20 days', NOW() - INTERVAL '20 days 1 hour', 1, 25.50, '', '+49 151 12345601', 'Unter den Linden 5', 'Lukas Schmidt', 'Lukas Schmidt', NOW() - INTERVAL '20 days', NOW() - INTERVAL '20 days'),
+('ORD-002', 4, 5, NOW() - INTERVAL '19 days', NOW() - INTERVAL '19 days 1 hour', 2, 45.00, '', '+33 6 12 34 56 05', 'Rue de Turenne 15', 'Camille Dubois', 'Camille Dubois', NOW() - INTERVAL '19 days', NOW() - INTERVAL '19 days'),
+('ORD-003', 4, 8, NOW() - INTERVAL '18 days', NOW() - INTERVAL '18 days 1 hour', 1, 32.00, '', '+39 333 1234508', 'Via della Lungaretta 8', 'Alessandro Ricci', 'Alessandro Ricci', NOW() - INTERVAL '18 days', NOW() - INTERVAL '18 days'),
+('ORD-004', 4, 2, NOW() - INTERVAL '15 days', NOW() - INTERVAL '15 days 1 hour', 1, 18.00, 'Lunch break', '+49 151 12345602', 'Oranienstrasse 20', 'Emma Weber', 'Emma Weber', NOW() - INTERVAL '15 days', NOW() - INTERVAL '15 days'),
+('ORD-005', 4, 12, NOW() - INTERVAL '10 days', NOW() - INTERVAL '10 days 1 hour', 2, 55.00, '', '+33 6 55 44 33 12', 'Rue Saint-Jean 10', 'Louis Martin', 'Louis Martin', NOW() - INTERVAL '10 days', NOW() - INTERVAL '10 days'),
+('ORD-006', 4, 20, NOW() - INTERVAL '5 days', NOW() - INTERVAL '5 days 1 hour', 1, 22.50, '', '+49 175 6667720', 'Muellerstrasse 10', 'Felix Koch', 'Felix Koch', NOW() - INTERVAL '5 days', NOW() - INTERVAL '5 days'),
+('ORD-007', 3, 3, NOW() - INTERVAL '30 minutes', NOW() - INTERVAL '20 minutes', 1, 40.00, 'Extra cutlery', '+49 170 98765403', 'Schellingstrasse 12', 'Maximilian Mueller', 'Maximilian Mueller', NOW() - INTERVAL '30 minutes', NOW() - INTERVAL '30 minutes'),
+('ORD-008', 2, 6, NOW() - INTERVAL '10 minutes', NULL, 1, 15.00, '', '+33 6 98 76 54 06', 'Rue Lepic 10', 'Gabriel Laurent', 'Gabriel Laurent', NOW() - INTERVAL '10 minutes', NOW() - INTERVAL '10 minutes'),
+('ORD-009', 2, 10, NOW() - INTERVAL '5 minutes', NULL, 2, 60.00, 'Birthday dinner', '+39 320 0001110', 'Via Fiori Chiari 3', 'Matteo Esposito', 'Matteo Esposito', NOW() - INTERVAL '5 minutes', NOW() - INTERVAL '5 minutes'),
+('ORD-010', 4, 4, NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days 1 hour', 1, 28.00, '', '+49 171 55500004', 'Leopoldstrasse 45', 'Sophie Wagner', 'Sophie Wagner', NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days');
 
--- 制作中订单
-('202412090004', 3, 6, NOW() - INTERVAL '30 minutes', NOW() - INTERVAL '25 minutes', 1, 36.80, '', '13900000006', '西二旗大街6号', '孙八', '孙八', NOW() - INTERVAL '30 minutes', NOW() - INTERVAL '25 minutes'),
-('202412090005', 3, 7, NOW() - INTERVAL '20 minutes', NOW() - INTERVAL '15 minutes', 1, 58.80, '不要辣椒', '13900000007', '中关村大街7号', '周九', '周九', NOW() - INTERVAL '20 minutes', NOW() - INTERVAL '15 minutes'),
-
--- 已付款待制作订单
-('202412090006', 2, 8, NOW() - INTERVAL '10 minutes', NOW() - INTERVAL '8 minutes', 1, 42.80, '', '13900000008', '三里屯路8号', '吴十', '吴十', NOW() - INTERVAL '10 minutes', NOW() - INTERVAL '8 minutes'),
-('202412090007', 2, 9, NOW() - INTERVAL '5 minutes', NOW() - INTERVAL '3 minutes', 2, 68.80, '快一点', '13900000009', '工体北路9号', '郑十一', '郑十一', NOW() - INTERVAL '5 minutes', NOW() - INTERVAL '3 minutes'),
-
--- 历史上的部分订单
-('202412070001', 4, 1, NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days 2 hours', 1, 38.80, '', '13900000001', '朝阳门外大街1号', '张三', '张三', NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days 2 hours'),
-('202412070002', 4, 2, NOW() - INTERVAL '2 days 1 hour', NOW() - INTERVAL '2 days 3 hours', 1, 48.80, '', '13900000002', '南京东路2号', '李四', '李四', NOW() - INTERVAL '2 days 1 hour', NOW() - INTERVAL '2 days 3 hours'),
-('202412060001', 4, 3, NOW() - INTERVAL '3 days', NOW() - INTERVAL '3 days 1 hour', 2, 88.80, '', '13900000003', '深南大道3号', '王五', '王五', NOW() - INTERVAL '3 days', NOW() - INTERVAL '3 days 1 hour'),
-('202412050001', 4, 4, NOW() - INTERVAL '4 days', NOW() - INTERVAL '4 days 2 hours', 1, 36.80, '', '13900000004', '文三路4号', '赵六', '赵六', NOW() - INTERVAL '4 days', NOW() - INTERVAL '4 days 2 hours'),
-('202412040001', 4, 5, NOW() - INTERVAL '5 days', NOW() - INTERVAL '5 days 1 hour', 1, 128.80, '', '13900000005', '东方红广场5号', '钱七', '钱七', NOW() - INTERVAL '5 days', NOW() - INTERVAL '5 days 1 hour');
-
--- 10. 插入订单详情数据 (Order Details)
--- 订单202412090001的详情 (56.80元)
+-- 11. INSERT ORDER DETAILS
 INSERT INTO order_detail (order_id, name, image, dish_id, number, amount, create_time, update_time) VALUES
-(1, '宫保鸡丁', NULL, 1, 1, 28.80, NOW() - INTERVAL '2 hours', NOW() - INTERVAL '90 minutes'),
-(1, '蛋炒饭', NULL, 7, 1, 15.80, NOW() - INTERVAL '2 hours', NOW() - INTERVAL '90 minutes'),
-(1, '紫菜蛋花汤', NULL, 15, 1, 12.80, NOW() - INTERVAL '2 hours', NOW() - INTERVAL '90 minutes'),
+(1, 'Pizza Margherita', NULL, 1, 2, 25.00, NOW() - INTERVAL '20 days', NOW()),
+(2, 'Coq au Vin', NULL, 3, 1, 22.00, NOW() - INTERVAL '19 days', NOW()),
+(2, 'French Onion Soup', NULL, 15, 2, 18.00, NOW() - INTERVAL '19 days', NOW()),
+(3, 'Osso Buco', NULL, 6, 1, 28.00, NOW() - INTERVAL '18 days', NOW()),
+(3, 'Espresso', NULL, 47, 1, 3.00, NOW() - INTERVAL '18 days', NOW());
 
--- 订单202412090002的详情 (68.80元)
-(2, '双人分享餐', NULL, NULL, 1, 68.80, NOW() - INTERVAL '3 hours', NOW() - INTERVAL '2 hours'),
-
--- 订单202412090003的详情 (88.80元)
-(3, '双人浪漫餐', NULL, NULL, 1, 88.80, NOW() - INTERVAL '4 hours', NOW() - INTERVAL '3 hours'),
-
--- 订单202412080001的详情 (45.80元)
-(4, '营养均衡餐', NULL, NULL, 1, 45.80, NOW() - INTERVAL '1 days', NOW() - INTERVAL '20 hours'),
-
--- 订单202412080002的详情 (128.80元)
-(5, '四人家庭餐', NULL, NULL, 1, 128.80, NOW() - INTERVAL '1 days 2 hours', NOW() - INTERVAL '21 hours'),
-
--- 订单202412090004的详情 (36.80元)
-(6, '单人豪华餐', NULL, NULL, 1, 36.80, NOW() - INTERVAL '30 minutes', NOW() - INTERVAL '25 minutes'),
-
--- 订单202412090005的详情 (58.80元)
-(7, '水煮鱼', NULL, 3, 1, 58.80, NOW() - INTERVAL '20 minutes', NOW() - INTERVAL '15 minutes'),
-
--- 订单202412090006的详情 (42.80元)
-(8, '商务午餐B', NULL, NULL, 1, 42.80, NOW() - INTERVAL '10 minutes', NOW() - INTERVAL '8 minutes'),
-
--- 订单202412090007的详情 (68.80元)
-(9, '双人分享餐', NULL, NULL, 1, 68.80, NOW() - INTERVAL '5 minutes', NOW() - INTERVAL '3 minutes');
-
--- 更新序列值
+-- Update Sequences
 SELECT setval('employee_id_seq', (SELECT MAX(id) FROM employee));
 SELECT setval('category_id_seq', (SELECT MAX(id) FROM category));
 SELECT setval('dish_id_seq', (SELECT MAX(id) FROM dish));
@@ -241,15 +216,4 @@ SELECT setval('setmeal_dish_id_seq', (SELECT MAX(id) FROM setmeal_dish));
 SELECT setval('orders_id_seq', (SELECT MAX(id) FROM orders));
 SELECT setval('order_detail_id_seq', (SELECT MAX(id) FROM order_detail));
 
--- 输出统计信息
-SELECT 'Test Data Inserted Successfully!' as message;
-SELECT 'Employee count: ' || COUNT(*) as employee_count FROM employee;
-SELECT 'Category count: ' || COUNT(*) as category_count FROM category;
-SELECT 'Dish count: ' || COUNT(*) as dish_count FROM dish;
-SELECT 'Dish flavor count: ' || COUNT(*) as dish_flavor_count FROM dish_flavor;
-SELECT 'User count: ' || COUNT(*) as user_count FROM users;
-SELECT 'Address count: ' || COUNT(*) as address_count FROM address_book;
-SELECT 'Setmeal count: ' || COUNT(*) as setmeal_count FROM setmeal;
-SELECT 'Setmeal dish count: ' || COUNT(*) as setmeal_dish_count FROM setmeal_dish;
-SELECT 'Order count: ' || COUNT(*) as order_count FROM orders;
-SELECT 'Order detail count: ' || COUNT(*) as order_detail_count FROM order_detail;
+SELECT 'EuroBite Extended Data Inserted Successfully!' as message;

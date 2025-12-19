@@ -1,0 +1,271 @@
+name: Deploy to AWS (Ubuntu 24, single server)
+
+on:
+  push:
+    branches: ["main", "deployment/cloud"]
+
+env:
+  RAW_IMAGE_PATH: ${{ github.repository }}
+  SERVER_IP: ${{ secrets.SERVER_IP }}
+
+jobs:
+  build-and-package:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      image_path: ${{ steps.image_path.outputs.image_path }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set lowercase image path
+        id: image_path
+        run: |
+          set -eu
+          IMAGE_PATH="$(echo "${RAW_IMAGE_PATH}" | tr '[:upper:]' '[:lower:]')"
+          echo "IMAGE_PATH=${IMAGE_PATH}" >> "${GITHUB_ENV}"
+          echo "image_path=${IMAGE_PATH}" >> "${GITHUB_OUTPUT}"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver: docker-container
+
+      - name: Prepare image artifacts directory
+        run: mkdir -p "deploy-images"
+
+      - name: Build Backend (export tar)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          tags: ghcr.io/${{ steps.image_path.outputs.image_path }}/eurobite-backend:latest
+          outputs: type=docker,dest=deploy-images/eurobite-backend.tar
+
+      - name: Build Frontend (export tar)
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          build-args: |
+            VITE_API_BASE_URL=/api
+          tags: ghcr.io/${{ steps.image_path.outputs.image_path }}/eurobite-frontend:latest
+          outputs: type=docker,dest=deploy-images/eurobite-frontend.tar
+
+      - name: Compress image tars
+        run: |
+          gzip -9 "deploy-images/eurobite-backend.tar"
+          gzip -9 "deploy-images/eurobite-frontend.tar"
+
+      - name: Upload image artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: deploy-images
+          path: deploy-images/*.tar.gz
+
+  deploy:
+    needs: build-and-package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download image artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: deploy-images
+          path: deploy-images
+
+      - name: Prepare remote directories
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -eu
+            mkdir -p "$HOME/eurobite/deploy-images"
+
+      - name: Create runtime env file (do not commit)
+        run: |
+          set -eu
+          cat > ".env.prod" <<'EOF'
+          IMAGE_PATH=${{ needs.build-and-package.outputs.image_path }}
+          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+          EOF
+
+      - name: Copy compose + env + images to server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: ".env.prod,deploy-images/eurobite-backend.tar.gz,deploy-images/eurobite-frontend.tar.gz"
+          target: "~/eurobite/"
+
+      - name: SSH deploy (docker load + docker run)
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            set -euo pipefail
+            cd "$HOME/eurobite"
+
+            echo "user=$(id -un) groups=$(id -nG)"
+            if ! command -v docker >/dev/null 2>&1; then
+              echo "ERROR: docker 未安装；请先在服务器安装 docker.io。" >&2
+              exit 1
+            fi
+
+            docker --version
+
+            if ! sudo -n true 2>/dev/null; then
+              echo "ERROR: sudo 需要免密；请配置 ubuntu 免密 sudo 或将用户加入 docker 组。" >&2
+              exit 1
+            fi
+
+            if [ ! -f ".env.prod" ]; then
+              echo "ERROR: .env.prod 不存在" >&2
+              exit 1
+            fi
+
+            set -a
+            # shellcheck disable=SC1091
+            . ".env.prod"
+            set +a
+
+            if [ -z "${IMAGE_PATH:-}" ]; then
+              echo "ERROR: IMAGE_PATH 为空" >&2
+              exit 1
+            fi
+            if [ -z "${POSTGRES_PASSWORD:-}" ]; then
+              echo "ERROR: POSTGRES_PASSWORD 为空" >&2
+              exit 1
+            fi
+
+            echo "==> Load images"
+            gzip -dc "deploy-images/eurobite-backend.tar.gz" | sudo -n docker load
+            gzip -dc "deploy-images/eurobite-frontend.tar.gz" | sudo -n docker load
+
+            BACKEND_IMAGE="ghcr.io/${IMAGE_PATH}/eurobite-backend:latest"
+            FRONTEND_IMAGE="ghcr.io/${IMAGE_PATH}/eurobite-frontend:latest"
+
+            NETWORK_NAME="eurobite-net"
+            POSTGRES_VOLUME="eurobite_postgres_data"
+            IMAGES_VOLUME="eurobite_images"
+
+            sudo -n docker network inspect "$NETWORK_NAME" >/dev/null 2>&1 || sudo -n docker network create "$NETWORK_NAME" >/dev/null
+            sudo -n docker volume inspect "$POSTGRES_VOLUME" >/dev/null 2>&1 || sudo -n docker volume create "$POSTGRES_VOLUME" >/dev/null
+            sudo -n docker volume inspect "$IMAGES_VOLUME" >/dev/null 2>&1 || sudo -n docker volume create "$IMAGES_VOLUME" >/dev/null
+
+            rotate_container() {
+              name="$1"
+              ts="$(date +%s)"
+              if sudo -n docker ps -a --format '{{.Names}}' | grep -Fxq "$name"; then
+                sudo -n docker stop "$name" >/dev/null 2>&1 || true
+                sudo -n docker rename "$name" "${name}-old-${ts}" >/dev/null 2>&1 || true
+              fi
+            }
+
+            rotate_container "eurobite-frontend"
+            rotate_container "eurobite-backend"
+            rotate_container "eurobite-redis"
+            rotate_container "eurobite-postgres"
+
+            echo "==> Run postgres + redis"
+            sudo -n docker run -d \
+              --name "eurobite-postgres" \
+              --restart "always" \
+              --network "$NETWORK_NAME" \
+              -e "POSTGRES_DB=eurobite" \
+              -e "POSTGRES_USER=postgres" \
+              -e "POSTGRES_PASSWORD=${POSTGRES_PASSWORD}" \
+              -v "${POSTGRES_VOLUME}:/var/lib/postgresql/data" \
+              --health-cmd "pg_isready -U postgres -d eurobite" \
+              --health-interval "5s" \
+              --health-timeout "3s" \
+              --health-retries "20" \
+              "postgres:16-alpine"
+
+            sudo -n docker run -d \
+              --name "eurobite-redis" \
+              --restart "always" \
+              --network "$NETWORK_NAME" \
+              --health-cmd "redis-cli ping | grep -q PONG" \
+              --health-interval "5s" \
+              --health-timeout "3s" \
+              --health-retries "20" \
+              "redis:7-alpine"
+
+            wait_for_healthy() {
+              name="$1"
+              attempts="${2:-60}"
+              i=1
+              while [ "$i" -le "$attempts" ]; do
+                status="$(sudo -n docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}no-healthcheck{{end}}' "$name" 2>/dev/null || echo "missing")"
+                if [ "$status" = "healthy" ] || [ "$status" = "no-healthcheck" ]; then
+                  echo "OK: $name status=$status"
+                  return 0
+                fi
+                sleep 1
+                i=$((i + 1))
+              done
+              echo "ERROR: $name not healthy (last=$status)" >&2
+              sudo -n docker logs --tail 200 "$name" || true
+              return 1
+            }
+
+            wait_for_healthy "eurobite-postgres" 90
+            wait_for_healthy "eurobite-redis" 90
+
+            echo "==> Run backend + frontend"
+            sudo -n docker run -d \
+              --name "eurobite-backend" \
+              --restart "always" \
+              --network "$NETWORK_NAME" \
+              -e "SPRING_DATASOURCE_URL=jdbc:postgresql://eurobite-postgres:5432/eurobite" \
+              -e "SPRING_DATASOURCE_USERNAME=postgres" \
+              -e "SPRING_DATASOURCE_PASSWORD=${POSTGRES_PASSWORD}" \
+              -e "SPRING_DATA_REDIS_HOST=eurobite-redis" \
+              -e "SPRING_DATA_REDIS_PORT=6379" \
+              -e "EUROBITE_PATH=/data/eurobite/images/" \
+              -v "${IMAGES_VOLUME}:/data/eurobite/images" \
+              "$BACKEND_IMAGE"
+
+            sudo -n docker run -d \
+              --name "eurobite-frontend" \
+              --restart "unless-stopped" \
+              --network "$NETWORK_NAME" \
+              -p "80:80" \
+              "$FRONTEND_IMAGE"
+
+            sudo -n docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
+
+            echo "==> Health checks"
+            if command -v curl >/dev/null 2>&1; then
+              wait_for_url() {
+                url="$1"
+                label="$2"
+                attempts="${3:-60}"
+                i=1
+                while [ "$i" -le "$attempts" ]; do
+                  if curl -fsS "$url" >/dev/null 2>&1; then
+                    echo "OK: $label ($url)"
+                    return 0
+                  fi
+                  sleep 1
+                  i=$((i + 1))
+                done
+                echo "ERROR: $label not ready ($url)" >&2
+                return 1
+              }
+
+              wait_for_url "http://127.0.0.1/" "frontend" 60
+              wait_for_url "http://127.0.0.1/api/category/list" "backend via nginx proxy" 60
+            else
+              echo "WARN: curl 不存在，跳过健康检查"
+            fi
+
+            echo "==> Done (public port: 80)"
